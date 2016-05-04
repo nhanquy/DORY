@@ -9,9 +9,18 @@
 //============================================================================
 
 #include <iostream>
+#include "TimeRef.h"
 using namespace std;
 
 int main() {
-	cout << "Algoriths box 1.0" << endl; // prints Algoriths box 1.0
+	timestr k0 = "10:00:00";
+	timestr kH = "17:00:00";
+	timestr testtime = "14:30:00";
+	double dt = 0.25;
+	TimeRef QTime(k0,kH,dt);
+	timestr st = QTime.time_now();
+	cout << "Time now! "<<st<<endl;
+	cout << "This time is between "<<k0<<" and "<<kH<<" ? "<<QTime.isInHorizon(st)<<endl;
+	printf("This time to double = %f ", QTime.timestr_to_double(st));
 	return 0;
 }
