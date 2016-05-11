@@ -7,6 +7,10 @@
 
 #include "TimeRef.h"
 
+TimeRef::TimeRef():
+	start_horizon(0),end_horizon(0),block_duration(1){
+}
+
 TimeRef::TimeRef(timestr set_k0, timestr set_kH, double delta_t) :
 		start_horizon(set_k0), end_horizon(set_kH), block_duration(delta_t) {
 }
@@ -150,4 +154,9 @@ const int TimeRef::block_now()
 	return(timestr_to_block(tt));
 }
 
+// Display tools
+
+void TimeRef::print_time_now(){
+	std::cout<<time_now()<<": ";
+}
 

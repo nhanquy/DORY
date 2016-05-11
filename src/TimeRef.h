@@ -17,6 +17,7 @@
 typedef std::string timestr;
 class TimeRef {
 public:
+	TimeRef();
 	TimeRef(timestr set_k0, timestr set_kH, double delta_t);
 	TimeRef(const TimeRef& that);
 	TimeRef& operator=(const TimeRef& that);
@@ -44,7 +45,8 @@ public:
 	const double hours_now(); // Number of hours passed since the starting of scheduling horizon k=0
 	const int block_now(); // Number of block passed since the starting time k=0
 	const timestr time_now();		  // Getting actual system time
-
+	// Display
+	void print_time_now();
 private:
 	timestr start_horizon;
 	timestr end_horizon;
