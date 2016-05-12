@@ -13,8 +13,8 @@ class EV {
 	friend class Parking;
 public:
 	EV(); 												// Create new EV
-	EV(int m_user_id, int m_borne_id, double m_auth_time,
-			double m_charging_power);					// Add new EV with car arrival event, ref AUT
+	EV(int m_user_id, int m_borne_id, double m_auth_time, double set_departure,
+			double m_est_demand,double m_charging_power );					// Add new EV with car arrival event, ref AUT
 	// Copier and destructor
 	EV(const EV& that);
 	EV& operator=(const EV& that);
@@ -44,7 +44,6 @@ public:
 	// Getting charging information
 	double estimate_SOC(double actual_time) const;
 	double estimate_consumptions(double actual_time) const;
-
 private:
 	// Identification
 	idInt user_id,borne_id;
@@ -54,6 +53,7 @@ private:
 	bool charging, fully_charged, halted;
 	// Estimation
 	double est_demand;
+	double exp_departure;
 	// Energy management
 	double last_changing_time,total_energy;
 };

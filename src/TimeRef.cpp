@@ -34,7 +34,7 @@ TimeRef::~TimeRef() {
  *  Validating tools (3)
  */
 
-bool TimeRef::isValidTime(int hr, int min, int sec) {
+bool TimeRef::isValidTime(int hr, int min, int sec) const {
 	return (((hr >= 0) && (hr < 24)) && ((min >= 0) && (min < 60))
 			&& ((sec >= 0) && (sec < 60)));
 }
@@ -66,7 +66,7 @@ bool TimeRef::isInHorizon(timestr to_valide)
  *  Operator ()
  */
 
-double TimeRef::difference(timestr t1, timestr t2) {
+double TimeRef::difference(timestr t1, timestr t2) const{
 	int h1, h2, m1, m2, s1, s2;
 	if (!timestr_parser(t1, h1, m1, s1) || !timestr_parser(t2, h2, m2, s2)) {
 		std::cout << "Invalid time-string hh:mm:ss \n";
@@ -76,7 +76,7 @@ double TimeRef::difference(timestr t1, timestr t2) {
 	return(result);
 }
 
-bool TimeRef::timestr_parser(timestr tstring, int& hh, int& mm, int& ss) {
+bool TimeRef::timestr_parser(timestr tstring, int& hh, int& mm, int& ss) const {
 	std::stringstream strs;
 	char c1, c2;
 	strs.clear();
@@ -92,7 +92,7 @@ bool TimeRef::timestr_parser(timestr tstring, int& hh, int& mm, int& ss) {
  *  Converting tools (5)
  */
 
-const timestr TimeRef::double_to_timestr(double set_time)
+timestr TimeRef::double_to_timestr(double set_time) const
 {
 	int hr = floor(set_time);
 	int mn = floor((set_time-hr)*60);
@@ -103,22 +103,22 @@ const timestr TimeRef::double_to_timestr(double set_time)
 	return(result);
 }
 
-const double TimeRef::timestr_to_double(timestr set_time)
+double TimeRef::timestr_to_double(timestr set_time) const
  {
 	 return(difference(start_horizon,set_time));
  }
 
-const double TimeRef::block_to_double(int set_block)
+double TimeRef::block_to_double(int set_block) const
 {
 	return (set_block*block_duration);
 }
 
-const int TimeRef::double_to_block(double set_time)
+int TimeRef::double_to_block(double set_time) const
 {
 	return(floor(set_time/block_duration));
 }
 
-const int TimeRef::timestr_to_block(timestr set_time)
+int TimeRef::timestr_to_block(timestr set_time) const
 {
 	double dt = timestr_to_double(set_time);
 	return(double_to_block(dt));
@@ -126,7 +126,7 @@ const int TimeRef::timestr_to_block(timestr set_time)
 
 // Getting time
 
-const timestr TimeRef::time_now()
+timestr TimeRef::time_now() const
 {
 	static int seconds_last = 99;
 	char TimeString[128];
@@ -142,13 +142,21 @@ const timestr TimeRef::time_now()
 	return(std::string(TimeString));
 }
 
-const double TimeRef::hours_now()
+double TimeRef::hours_now() const
 {
 	timestr tt = time_now();
 	return(timestr_to_double(tt));
 }
 
-const int TimeRef::block_now()
+int TimeRef::block_end() const{
+	return(timestr_to_block(end_horizon));
+}
+double TimeRef::hours_end() const{
+	return(timestr_to_double(end_horizon));
+}
+
+
+int TimeRef::block_now() const
 {
 	timestr tt = time_now();
 	return(timestr_to_block(tt));

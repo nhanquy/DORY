@@ -16,12 +16,13 @@ EV::EV() :
 		charging(false), fully_charged(false), halted(false),
 		// Forecasting
 		est_demand(0),
+		exp_departure(0),
 		// Energy management
 		last_changing_time(0), total_energy(0) {
 }
 
-EV::EV(int m_user_id, int m_borne_id, double m_auth_time,
-		double m_charging_power) :
+EV::EV(int m_user_id, int m_borne_id, double m_auth_time, double set_departure,
+		double m_est_demand,double m_charging_power) :
 		/*-----------------
 		 *  Event ref AUT
 		  -----------------*/
@@ -32,7 +33,7 @@ EV::EV(int m_user_id, int m_borne_id, double m_auth_time,
 		// Status flags
 		charging(false), fully_charged(false), halted(false),
 		// Forecasting
-		est_demand(0),
+		est_demand(m_est_demand), exp_departure(set_departure),
 		// Energy management
 		last_changing_time(0), total_energy(0) {
 }
@@ -50,6 +51,7 @@ EV::EV(const EV& that) {
 	fully_charged = that.fully_charged;
 	// Estimation
 	est_demand = that.est_demand;
+	exp_departure = that.exp_departure;
 	// Energy management
 	last_changing_time = that.last_changing_time;
 	total_energy = that.total_energy;
@@ -68,6 +70,7 @@ EV& EV::operator =(const EV& that) {
 	fully_charged = that.fully_charged;
 	// Estimation
 	est_demand = that.est_demand;
+	exp_departure = that.exp_departure;
 	// Energy management
 	last_changing_time = that.last_changing_time;
 	total_energy = that.total_energy;

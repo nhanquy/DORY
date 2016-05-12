@@ -8,16 +8,15 @@
 #include "Parking.h"
 
 Parking::Parking() :
-		bandwidth(0), config_done(false), operating(false), fifo(true), db_setup(
-				false), config_count(0), db_dir("") {
+		bandwidth(0), config_done(false), operating(false), fifo(true), config_count(0){
 	// Default constructor applied for
 	// Time RefQTime and vector<EV> fleet.
 }
 
 Parking::Parking(const TimeRef& config_time, const double& set_bw,
-		bool set_fifo = false) :
+		bool set_fifo) :
 		bandwidth(set_bw), QTime(config_time), config_done(true), operating(
-				false), fifo(true), db_setup(false), config_count(2), db_dir("") {
+				false), fifo(true),config_count(2){
 	// Default constructor applied for
 	// vector<EV> fleet
 }
@@ -32,9 +31,7 @@ Parking::Parking(const Parking& that) {
 	config_done = that.config_done;
 	operating = that.operating;
 	fifo = that.fifo;
-	db_setup = that.db_setup;
-	db_dir = that.db_dir;
-	config_count = that.config_count
+	config_count = that.config_count;
 }
 
 Parking& Parking::operator =(const Parking& that) {
@@ -43,9 +40,7 @@ Parking& Parking::operator =(const Parking& that) {
 	config_done = that.config_done;
 	operating = that.operating;
 	fifo = that.fifo;
-	db_setup = that.db_setup;
-	db_dir = that.db_dir;
-	config_count = that.config_count
+	config_count = that.config_count;
 	return *this;
 }
 
@@ -65,18 +60,17 @@ void Parking::set_bandwidth(const double set_bw) {
 		config_done = true;
 }
 
-void Parking::set_db_dir(const char* m_db_dir) {
-	db_dir = m_db_dir;
-	db_setup = true;
-}
-
 // EV management
 
-void Parking::add_EV(int m_user_id, int m_borne_id, double m_auth_time,
-		double m_charging_power) {
-
+void Parking::add_EV(int m_user_id, int m_borne_id, const numVec& params) {
+	// Params = |auth_time|dep_time|est_demand|est_power|
+	if (params.size()!=4)
+	{
+		std::cout<<"Error: Parameters of EV not correct!\n";
+		return;
+	}
 	if (search_by_ID(m_user_id) == -1) {
-		EV new_EV(m_user_id, m_borne_id, m_auth_time, m_charging_power);
+		EV new_EV(m_user_id, m_borne_id,params[0],params[1],params[2],params[3]);
 		fleet.push_back(new_EV);
 	} else
 		std::cout << "Warning: EV already in parking!\n";
@@ -92,18 +86,13 @@ void Parking::remove_EV(int m_user_id) {
 
 // Searching tools
 int Parking::search_by_ID(int user_id) const {
-	for (int ind = 0; ind < fleet.size(); ind++)
+	for (unsigned int ind = 0; ind < fleet.size(); ind++)
 		if (fleet[ind].get_user_id() == user_id)
 			return ind;
 	return -1;
 }
 
 // EVENTS DEFINITIONS
-
-void Parking::authentification(int user_id, int borne_id, double auth_time,
-		double charging_power = 0) {
-	add_EV(user_id, borne_id, auth_time, charging_power);
-}
 
 void Parking::end_of_charge(int user_id) {
 	int ind = search_by_ID(user_id);
@@ -171,3 +160,12 @@ void Parking::no_charge(int user_id){
 	std::cout<<"EV "<<user_id<<" consumes no power. \n";
 }
 
+// EXPORTING TO INPUT FOR ACPF
+
+void Parking::export_ACPF_input(Input &ACPF_input){
+	TimeRef ACPF_Time(QTime);
+	bl_H -= bl_now;_
+	double hr_now = QTime.hours_now();
+	double hr_H = QTime.hours_end();
+	hr_H -= bl_now;
+}
