@@ -168,3 +168,31 @@ void TimeRef::print_time_now(){
 	std::cout<<time_now()<<": ";
 }
 
+// Setting time
+
+void TimeRef::set_start_horizon(timestr m_s){
+	if(!isValideTimeStr(m_s))
+	{
+		std::cout<<"Error: Time string format invalid!";
+		return;
+	}
+	start_horizon = m_s;
+}
+
+void TimeRef::set_end_horizon(timestr m_e){
+	if(!isValideTimeStr(m_e))
+	{
+		std::cout<<"Error: Time string format invalid!\n";
+		return;
+	}
+	start_horizon = m_e;
+}
+
+void TimeRef::set_block_horizon(double m_d){
+	if(m_d<=0)
+	{
+		std::cout<<"Error: Block horizon should be strictly positive!\n";
+		return;
+	}
+	block_duration = m_d;
+}

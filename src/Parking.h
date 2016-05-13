@@ -12,6 +12,9 @@
 #include "Input.h"
 #include "libs/matrix.h"
 #include <vector>
+
+#define addition_est 0.1
+
 class Parking {
 	friend class Event_Handler;
 public:
@@ -51,7 +54,6 @@ private:
 	// config_done	: Parking already setup with QTime and bandwidth derived
 	// operating  	: Scheduling already begin (QTime.now() in k0 and K_H)
 	// fifo			: Parking operating in FIFO mode
-
 
 };
 #endif /* PARKING_H_ */

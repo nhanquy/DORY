@@ -18,7 +18,6 @@
 #else
 #  define DEBUG_LOG if(false) std::cout
 #endif
-
 //
 // MATRIXS & VECTORS DEFINITIONS
 //

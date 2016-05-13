@@ -25,7 +25,7 @@ public:
 	void set_user_id(idInt m_value);					// Unsigned int
 	void set_auth_time(double m_value); 				// Double, number of hours since starting of scheduling horizon
 	void set_borne_id(idInt m_value);					// Unsigned int
-	void set_est_demand(const char* string_date);		// Double, in kW.h
+	void set_est_demand(double value);		// Double, in kW.h
 
 	// Getting informations
 
@@ -34,6 +34,8 @@ public:
 	double get_auth_time() const;
 	double get_charging_power() const;
 	double get_est_demand() const;
+	double get_exp_departure() const;
+	bool is_charging() const;
 
 	// Events(4)																// Reference code
 	void begin_to_charge(double m_power, double m_stime);						// ref BOC

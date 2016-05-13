@@ -103,6 +103,7 @@ void Parking::end_of_charge(int user_id) {
 	fleet[ind].end_of_charge(QTime.hours_now());
 	QTime.print_time_now();
 	std::cout<<"EV "<<user_id<<"'s charging has been ended. \n";
+	remove_EV(user_id);
 }
 
 void Parking::begin_of_charge(int user_id, double charging_power){
@@ -160,12 +161,60 @@ void Parking::no_charge(int user_id){
 	std::cout<<"EV "<<user_id<<" consumes no power. \n";
 }
 
+//
 // EXPORTING TO INPUT FOR ACPF
+// Changing real-time information into technical input for algorithm ACPF
+//
 
 void Parking::export_ACPF_input(Input &ACPF_input){
 	TimeRef ACPF_Time(QTime);
-	bl_H -= bl_now;_
-	double hr_now = QTime.hours_now();
-	double hr_H = QTime.hours_end();
-	hr_H -= bl_now;
+	ACPF_Time.set_start_horizon(QTime.time_now());
+	double ref_now = QTime.hours_now();
+	int n = fleet.size();
+	int H = ACPF_Time.block_end();
+	intVec user_id = intVec(0,n);
+	intVec departure = intVec(0,n);
+	intVec arrival = intVec(0,n);
+	numVec u = numVec(0,n);
+	numVec workload = numVec(0,n);
+	for(int i=0; i<n;i++){
+		user_id[i] = fleet[i].get_user_id();
+		u[i] = fleet[i].get_charging_power();
+		// Verifying at first if the EV is in charging or not
+		if (fleet[i].is_charging)
+		{
+			// Getting energy left to charge to fix the time-windows
+			double energy_left = fleet[i].est_demand-fleet[i].estimate_consumptions(ref_now);
+			// If energy left is negative (estimated value < actual value)
+			if (energy_left<=0)
+			{
+				// Increase the estimation value by a portion of addition_est by actual value
+				energy_left = addition_est*fleet[i].estimate_consumptions(ref_now);
+				fleet[i].set_est_demand((1/addition_est+1)*energy_left);
+			}
+			// Fixing time-windows so the scheduled charge will be untouched by ACPF
+			double m_departure = ref_now+energy_left/u[i];
+			departure[i] = QTime.double_to_block(m_departure);
+			workload[i] = energy_left;
+		}
+		else
+		{
+			departure[i] = QTime.double_to_block(fleet[i].get_exp_departure());
+			workload[i] = fleet[i].get_est_demand();
+		}
+		// Fixing arrival to start of horizon
+		// No-wait model applied, only schedule EV already parked
+		// Arrival constraints relaxed
+		arrival[i] = 0;
+	}
+	numVec arr_bandwidth = numVec(bandwidth,H);
+	// Setting new input
+	ACPF_input.set_nTasks(n);
+	ACPF_input.set_timeHorizon(H);
+	ACPF_input.set_user_id(user_id);
+	ACPF_input.set_u_max(u);
+	ACPF_input.set_u_min(u);
+	ACPF_input.set_dueDate(departure);
+	ACPF_input.set_releaseDate(arrival);
+	ACPF_input.set_workload(workload);
 }

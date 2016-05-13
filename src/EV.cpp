@@ -96,8 +96,8 @@ void EV::set_borne_id(idInt m_value) {
 	borne_id = m_value;
 }
 
-void EV::set_est_demand(const char* string_date) {
-	// TODO: Referencing predicted value in database by date-time string
+void EV::set_est_demand(double m_value) {
+	est_demand = m_value;
 }
 
 /*
@@ -120,6 +120,13 @@ double EV::get_est_demand() const{
 	return est_demand;
 }
 
+double EV::get_exp_departure() const{
+	return exp_departure;
+}
+
+bool EV::is_charging()const{
+	return charging;
+}
 /*
  *  Events definitions
  */
