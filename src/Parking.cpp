@@ -84,6 +84,9 @@ void Parking::remove_EV(int m_user_id) {
 		std::cout << "Warning: Cannot delete a non-existent EV!\n";
 }
 
+void Parking::reset_fleet(){
+	fleet.clear();
+}
 // Searching tools
 int Parking::search_by_ID(int user_id) const {
 	for (unsigned int ind = 0; ind < fleet.size(); ind++)
@@ -161,6 +164,10 @@ void Parking::no_charge(int user_id){
 	std::cout<<"EV "<<user_id<<" consumes no power. \n";
 }
 
+void Parking::set_fifo(bool m_fifo){
+	fifo = m_fifo;
+}
+
 //
 // EXPORTING TO INPUT FOR ACPF
 // Changing real-time information into technical input for algorithm ACPF
@@ -181,7 +188,7 @@ void Parking::export_ACPF_input(Input &ACPF_input){
 		user_id[i] = fleet[i].get_user_id();
 		u[i] = fleet[i].get_charging_power();
 		// Verifying at first if the EV is in charging or not
-		if (fleet[i].is_charging)
+		if (fleet[i].is_charging())
 		{
 			// Getting energy left to charge to fix the time-windows
 			double energy_left = fleet[i].est_demand-fleet[i].estimate_consumptions(ref_now);

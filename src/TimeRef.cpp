@@ -73,6 +73,9 @@ double TimeRef::difference(timestr t1, timestr t2) const{
 		return -1;
 	}
 	double result = (double)(h2-h1)+(double)(m2-m1)/60+(double)(s2-s1)/3600;
+	if (result<0)
+		// Overnight timestr
+		result+=24;
 	return(result);
 }
 

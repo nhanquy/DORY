@@ -27,6 +27,7 @@ public:
 	void set_QTime(const TimeRef& config_time);
 	void set_bandwidth(const double set_bw);
 	// EV management
+	void reset_fleet();
 	void add_EV(int m_user_id, int m_borne_id, const numVec& params); 							// AUT
 	// Params = |auth_time|dep_time|est_demand|est_power|
 	void remove_EV(int m_user_id);
@@ -43,6 +44,7 @@ protected:
 	// With new information given and set up, Parking exports
 	// new input file for algorithm ACPF 2.0
 	void export_ACPF_input(Input &ACPF_input);
+	void set_fifo(bool m_fifo);
 private:
 	std::vector<EV> fleet;
 	double bandwidth;
