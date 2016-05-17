@@ -17,59 +17,54 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "TimeRef.h"
+#include "EventHandler.h"
+#include "QServer.h"
 using namespace std;
+int main(int argc, char *argv[]) {
+	/*
+	 * argv = config_dir, config_id, db_dir, port_no
+	 */
+	const char* config_dir = argv[1];
+	const char* config_id = argv[2];
+	const char* db_dir = argv[3];
+	int port_no = atoi(argv[4]);
+	// Add event
+	Event_Handler event;
+	event.read_config(config_dir, config_id);
+	event.setup_db_handler(db_dir);
+	Json::Value root;
+	Json::Reader reader;
 
-void error(const char *msg) {
-	perror(msg);
-	exit(1);
-}
-int main(/*int argc, char *argv[]*/) {
-	int argc=2;
-	char *argv[2]={"localhost","10000"};
-	int sockfd, newsockfd, portno;
-	socklen_t clilen;
-	char buffer[256];
-	struct sockaddr_in serv_addr, cli_addr;
-	int n;
-	if (argc < 2) {
-		fprintf(stderr, "ERROR, no port provided\n");
+	// Configuring server
+	QServer jsonserver(port_no);
+	if (!jsonserver.etablish_connection())
 		exit(1);
-	}
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0)
-		error("ERROR opening socket");
-	bzero((char *) &serv_addr, sizeof(serv_addr));
-	portno = atoi(argv[1]);
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
-	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-		error("ERROR on binding");
-	listen(sockfd, 5);
-	clilen = sizeof(cli_addr);
-	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-	if (newsockfd < 0)
-		error("ERROR on accept");
-	bzero(buffer, 256);
-	n = read(newsockfd, buffer, 255);
-	if (n < 0)
-		error("ERROR reading from socket");
-	printf("Here is the message: %s\n", buffer);
-	n = write(newsockfd, "I got your message", 18);
-	if (n < 0)
-		error("ERROR writing to socket");
-	close(newsockfd);
-	close(sockfd);
-	//
-	timestr k0 = "10:00:00";
-	timestr kH = "17:00:00";
-	timestr testtime = "14:30:00";
-	double dt = 0.25;
-	TimeRef QTime(k0, kH, dt);
-	timestr st = QTime.time_now();
-	cout << "Time now! " << st << endl;
-	cout << "This time is between " << k0 << " and " << kH << " ? "
-			<< QTime.isInHorizon(st) << endl;
-	printf("This time to double = %f ", QTime.timestr_to_double(st));
+	int pid,client_socket;
+	while (1) {
+		jsonserver.accept_connection(client_socket);
+		pid = fork();
+		if (pid < 0)
+			perror("ERROR on fork");
+		if (pid == 0) {
+			jsonserver.close_server_socket();
+			// Read buffer
+			jsonserver.read_buffer(client_socket);
+			// Parsing into JSON value
+			bool parsingSuccessful = reader.parse(jsonserver.get_buffer(),
+					root);
+			if (!parsingSuccessful) {
+				// report to the user the failure and their locations in the document.
+				DEBUG_LOG << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
+			}
+			// Event handling to Parking
+			event.open_hist_db();
+			event.getting_event(root);
+			event.close_hist_db();
+			jsonserver.write_response(client_socket,"Message read!");
+			exit(0);
+		} else
+			jsonserver.close_client_socket(client_socket);
+	} /* end of while */
 	return 0;
+
 }

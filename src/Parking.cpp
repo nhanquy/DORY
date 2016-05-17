@@ -62,15 +62,10 @@ void Parking::set_bandwidth(const double set_bw) {
 
 // EV management
 
-void Parking::add_EV(int m_user_id, int m_borne_id, const numVec& params) {
-	// Params = |auth_time|dep_time|est_demand|est_power|
-	if (params.size()!=4)
-	{
-		std::cout<<"Error: Parameters of EV not correct!\n";
-		return;
-	}
+void Parking::add_EV(int m_user_id, int m_borne_id,
+		double auth_time, double dep_time, double est_demand, double est_power) {
 	if (search_by_ID(m_user_id) == -1) {
-		EV new_EV(m_user_id, m_borne_id,params[0],params[1],params[2],params[3]);
+		EV new_EV(m_user_id, m_borne_id,auth_time, dep_time, est_demand,est_power);
 		fleet.push_back(new_EV);
 	} else
 		std::cout << "Warning: EV already in parking!\n";

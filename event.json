@@ -1,0 +1,20 @@
+{
+	"AUT":[
+	{
+		"user_id" : 123,
+		"borne_id" : 1,
+		"charging_power" : "avc"
+	},
+	{
+		"user_id" : 456,
+		"borne_id" : 2,
+		"charging_power" : 9.5
+	}],
+	"FDC":[
+	{
+		"user_id" :145
+	},
+	{
+		"user_id" : 111
+	}]
+}

@@ -8,7 +8,7 @@
 #include "TimeRef.h"
 
 TimeRef::TimeRef():
-	start_horizon(0),end_horizon(0),block_duration(1){
+	start_horizon("00:00:00"),end_horizon("00:00:00"),block_duration(1){
 }
 
 TimeRef::TimeRef(timestr set_k0, timestr set_kH, double delta_t) :

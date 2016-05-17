@@ -28,8 +28,8 @@ public:
 	void set_bandwidth(const double set_bw);
 	// EV management
 	void reset_fleet();
-	void add_EV(int m_user_id, int m_borne_id, const numVec& params); 							// AUT
-	// Params = |auth_time|dep_time|est_demand|est_power|
+	void add_EV(int m_user_id, int m_borne_id,
+			double auth_time, double dep_time, double est_demand, double est_power); 			// AUT
 	void remove_EV(int m_user_id);
 	// Searching tools
 	int search_by_ID(int m_user_id) const; // Return -1 if EV doesn't exist
