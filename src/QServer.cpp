@@ -13,10 +13,12 @@ void error(const char *msg) {
 	exit(1);
 }
 
-QServer::QServer(){
+QServer::QServer():	con_etab(false),
+sockfd(0), portno(0),clilen(0){
 }
-QServer::QServer(int m_port) :
-		portno(m_port) {
+
+QServer::QServer(int m_port):con_etab(false),
+		sockfd(0), portno(m_port),clilen(0){
 }
 QServer::~QServer() {
 	close_server_socket();
@@ -45,7 +47,7 @@ bool QServer::read_buffer(int newsockfd) {
 	if(!con_etab)
 		return false;
 	bzero(buffer, 1024);
-	n = read(newsockfd, buffer, 1023);
+	int n = read(newsockfd, buffer, 1023);
 	if (n < 0){
 		error("ERROR reading from socket");
 		return false;
@@ -57,7 +59,7 @@ bool QServer::read_buffer(int newsockfd) {
 bool QServer::write_response(int newsockfd,const char* message) {
 	if(!con_etab)
 		return false;
-	n = write(newsockfd, message, 18);
+	int n = write(newsockfd, message, 18);
 	if (n < 0){
 		error("ERROR writing to socket");
 		return false;

@@ -9,11 +9,12 @@
 #define TIMEREF_H_
 #include <stdio.h>
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <sstream>
 #include <sys/time.h>
 #include <ctime>
 #include <math.h>
+#include "libs/easylogging++.h"
 typedef std::string timestr;
 class TimeRef {
 public:
@@ -25,12 +26,12 @@ public:
 
 	// Validation tools (3)
 	bool isValidTime(int hr, int min, int sec) const;
-	bool isValideTimeStr(timestr to_valide);
-	bool isInHorizon(timestr ref_time);
+	bool isValideTimeStr(const timestr& to_valide) const;
+	bool isInHorizon(const timestr& ref_time) const;
 
 	// Operator (2)
 	double difference(timestr t1, timestr t2) const; // Getting duration from t1 to t2 in term of hours
-	bool timestr_parser(timestr tstring, int& hh, int& mm, int& ss) const;
+	bool timestr_parser(const timestr& tstring, int& hh, int& mm, int& ss) const;
 
 	// Converting tools (5)
 

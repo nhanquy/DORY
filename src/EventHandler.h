@@ -12,10 +12,12 @@
 #include <string>
 #include "libs/matrix.h"
 #include "libs/DBHandler.h"
+#include "libs/QTimer.h"
 #include "TimeRef.h"
-#include "Input.h"
-#include "Layering.h"
+#include "heuristics/Input.h"
+#include "heuristics/ConstructiveHeuristic.h"
 #include "Parking.h"
+#include "libs/easylogging++.h"
 
 class Event_Handler {
 public:
@@ -38,19 +40,19 @@ public:
 	 * {
 	 * 	"Morning_Config":
 	 * 		{
-	  		"Start_time"	:	"07:00:00",
-	  		"End_time"		:	"12:00:00",
-	  		"Block_duration":	"0.25",
-	  		"FIFO"			:	"1",
-	  		"BA_Timeout"	:	"20"
+	 * 		"Start_time"	:	"07:00:00",
+	 * 		"End_time"		:	"12:00:00",
+	 * 		"Block_duration":	"0.25",
+	 * 		"FIFO"			:	"1",
+	 * 		"BA_Timeout"	:	"20"
 	 * 		},
 	 * "Noon_Config":
-	 * 		 * 		{
-	  		"Start_time"	:	"12:00:00",
-	  		"End_time"		:	"16:00:00",
-	  		"Block_duration":	"0.25",
-	  		"FIFO"			:	"0",
-	  		"BA_Timeout"	:	"20"
+	 * 		{
+	 * 		"Start_time"	:	"12:00:00",
+	 * 		"End_time"		:	"16:00:00",
+	 * 		"Block_duration":	"0.25",
+	 * 		"FIFO"			:	"0",
+	 * 		"BA_Timeout"	:	"20"
 	 * 		}
 	 * 	}
 	 *
@@ -106,21 +108,27 @@ public:
 	 * }
 	 */
 	/*
+	 * What to do...
+	 */
+	bool find_solution();
+	/*
 	 *  Reporting & output
 	 */
 	bool response(std::string& msg_output);
 private:
 	TimeRef Event_Time;
 	DB_Handler hist_db;
-	Layering algorithm;
+	ConstructiveHeuristic algorithm;
 	Input algo_input;
 	Parking parking;
 	// Status flags
-	bool config_got,hist_db_setup, message_got, error, no_solution;
+	bool config_got,hist_db_setup, message_got, error, no_solution,FIFO;
 	// Run-time control
 	double algorithm_timeout; // Seconds of algorithm time-out
-	//
-
+	// Saving EV priority to matrix
+	intVec prioEV;
+	numVec prioPower;
+	QTimer timer;
 };
 
 #endif /* EVENTHANDLER_H_ */

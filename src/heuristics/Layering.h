@@ -7,8 +7,10 @@
 
 #ifndef LAYERING_H_
 #define LAYERING_H_
-#include "libs/matrix.h"
+#include "../libs/matrix.h"
+#include "../libs/QTimer.h"
 #include "Input.h"
+#include "../libs/easylogging++.h"
 /*
  *
  */
@@ -19,8 +21,8 @@ public:
 	numMat resource_allocation;
 	intVec start_time;
 	intVec end_time;
-	bool feasible;
 	void solve(Input params,std::vector<int> tasks_queue);
+	bool isFeasible() const;
 private:
 	int nTasks;
 	int timeHorizon;
@@ -33,6 +35,8 @@ private:
 	void minmax_planning(int jobID, QNum workload, QNum res_lb,
 			QNum res_ub, QInt releaseDate, QInt dueDate);
 	void allocate_resource(int start,int end,QNum res,numVec& res_row);
+	bool feasible;
+	QTimer timer;
 };
 
 #endif /* LAYERING_H_ */

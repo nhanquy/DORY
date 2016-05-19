@@ -7,8 +7,10 @@
 
 #include "DBHandler.h"
 
-DB_Handler::DB_Handler() :
-		zErrMsg(0), db_is_open(false) {
+DB_Handler::DB_Handler() : db(nullptr) ,db_is_open(false){
+}
+DB_Handler::~DB_Handler(){
+	close_db();
 }
 void DB_Handler::set_db_dir(const char* set_dir) {
 	db_dir = std::string(set_dir);
@@ -17,11 +19,11 @@ void DB_Handler::set_db_dir(const char* set_dir) {
 #endif
 }
 
-const bool DB_Handler::open_db() {
+bool DB_Handler::open_db() {
 	try {
 		int rc = sqlite3_open(db_dir.c_str(), &db);
 		if (rc) {
-			fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+			LOG(ERROR)<<"Can't open database:"<< sqlite3_errmsg(db);
 			sqlite3_close(db);
 			return (false);
 		}
@@ -35,16 +37,6 @@ const bool DB_Handler::open_db() {
 void DB_Handler::close_db() {
 	db_is_open = false;
 	sqlite3_close(db);
-}
-
-int DB_Handler::callback(void *NotUsed, int argc, char **argv,
-		char **azColName) {
-	int i;
-	for (i = 0; i < argc; i++) {
-		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-	}
-	printf("\n");
-	return 0;
 }
 
 /*

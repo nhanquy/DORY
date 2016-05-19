@@ -9,7 +9,7 @@
 
 Event_Handler::Event_Handler() :
 		config_got(false), hist_db_setup(false), message_got(false), error(
-				false), no_solution(true), algorithm_timeout(20) {
+				false), no_solution(true), FIFO(true),algorithm_timeout(20) {
 }
 
 /*
@@ -19,8 +19,7 @@ Event_Handler::Event_Handler() :
 void Event_Handler::read_config(const char* config_file, const char* config_id) {
 	std::ifstream jsonDoc(config_file, std::ifstream::binary);
 	if (!jsonDoc.is_open()) {
-		DEBUG_LOG << "Unable to open file" << config_file
-				<< "\nProgram terminating...\n";
+		LOG(ERROR) << "Unable to open file" << config_file;
 		return;
 	}
 	Json::Value root;   // will contains the root value after parsing.
@@ -28,8 +27,7 @@ void Event_Handler::read_config(const char* config_file, const char* config_id) 
 	bool parsingSuccessful = reader.parse(jsonDoc, root);
 	if (!parsingSuccessful) {
 		// report to the user the failure and their locations in the document.
-		DEBUG_LOG << "Failed to parse input file\n"
-				<< reader.getFormattedErrorMessages();
+		LOG(ERROR) << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
 		return;
 	}
 	// Re-map root
@@ -39,7 +37,7 @@ void Event_Handler::read_config(const char* config_file, const char* config_id) 
 	timestr end_time = root["End_time"].asString();
 	double set_bw = root["Bandwidth"].asDouble();
 	double delta_t = root["Block_duration"].asDouble();
-	bool FIFO = root["FIFO"].asBool();
+	FIFO = root["FIFO"].asBool();
 	// BA general configurations
 	algorithm_timeout = root["BA_timeout"].asDouble();
 	// Time Configuration
@@ -111,7 +109,7 @@ void Event_Handler::MCR() {
 bool Event_Handler::getting_event(const Json::Value& root) {
 	// AUT: Authentification
 	const Json::Value root_AUT = root["AUT"];
-	for (int index = 0; index < root_AUT.size(); index++) {
+	for (unsigned int index = 0; index < root_AUT.size(); index++) {
 		try {
 			int user_id = root_AUT[index]["user_id"].asInt();
 			int borne_id = root_AUT[index]["borne_id"].asInt();
@@ -125,7 +123,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	}
 	// FDC: Fin de Charge
 	const Json::Value root_FDC = root["FDC"];
-	for (int index = 0; index < root_FDC.size(); index++) {
+	for (unsigned int index = 0; index < root_FDC.size(); index++) {
 		try {
 			FDC(root_FDC[index]["user_id"].asInt());
 		} catch (...) {
@@ -135,7 +133,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	}
 	// ANU: Anulation de Charge
 	const Json::Value root_ANU = root["ANU"];
-	for (int index = 0; index < root_ANU.size(); index++) {
+	for (unsigned int index = 0; index < root_ANU.size(); index++) {
 		try {
 			ANU(root_ANU[index]["user_id"].asInt());
 		} catch (...) {
@@ -145,7 +143,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	}
 	// DCF: Depart de la Charge Forcee
 	const Json::Value root_DCF = root["DCF"];
-	for (int index = 0; index < root_DCF.size(); index++) {
+	for (unsigned int index = 0; index < root_DCF.size(); index++) {
 		try {
 			int user_id = root_DCF[index]["user_id"].asInt();
 			double charging_power =
@@ -158,7 +156,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	}
 	// PID: Puissance neccesaire inferieure a consigne
 	const Json::Value root_PID = root["PID"];
-	for (int index = 0; index < root_PID.size(); index++) {
+	for (unsigned int index = 0; index < root_PID.size(); index++) {
 		try {
 			int user_id = root_PID[index]["user_id"].asInt();
 			double charging_power =
@@ -171,7 +169,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	}
 	// CNU: Charge null
 	const Json::Value root_CNU = root["CNU"];
-	for (int index = 0; index < root_CNU.size(); index++) {
+	for (unsigned int index = 0; index < root_CNU.size(); index++) {
 		try {
 			CNU(root_CNU[index]["user_id"].asInt());
 		} catch (...) {
@@ -183,3 +181,27 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 	return true;
 }
 
+
+/*
+ *  Resolution procedure
+ *  1. Parking export new input
+ *  2. ACPF get the input to solve for solution
+ *  3. Solution analyzer is used to sort EVs queue
+ */
+bool Event_Handler::find_solution(){
+	if(FIFO)
+	{
+		LOG(INFO)<<"FIFO configuration, no need to find BA Solution!";
+		return false;
+	}
+	Input ACPF_input;
+	parking.export_ACPF_input(ACPF_input);
+	algorithm.solve(ACPF_input);
+	if(algorithm.isFeasible()){
+		// Exporting result
+
+		return true;
+	}
+	else
+		return false;
+}

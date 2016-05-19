@@ -49,7 +49,7 @@ Input::Input(char const* fileName) {
 	jsonArray = root["dueDate"];
 	readArray(jsonArray, dueDate);
 	// Controlling dueDate
-	for (unsigned int k = 0; k < nTasks; ++k)
+	for (int k = 0; k < nTasks; ++k)
 		if (dueDate[k] >= timeHorizon) // Because starting at 0; k \in {0,...,H-1} : H elements
 				{
 			dueDate[k] = timeHorizon - 1;
@@ -128,6 +128,9 @@ template<typename T> void Input::readArray(Json::Value jsonArray,
 }
 // Getting data methods
 // System
+const QInt Input::get_user_ID(QInt index) const{
+	return(user_id[index]);
+}
 const QInt Input::get_nTasks() const {
 	return nTasks;
 }
@@ -138,28 +141,28 @@ const numVec Input::get_bandwidth() const {
 	return bandwidth;
 }
 // Each job
-const QInt Input::get_releaseDate(QInt jobID) const {
-	return releaseDate[jobID];
+const QInt Input::get_releaseDate(QInt index) const {
+	return releaseDate[index];
 }
-const QInt Input::get_dueDate(QInt jobID) const {
-	return dueDate[jobID];
+const QInt Input::get_dueDate(QInt index) const {
+	return dueDate[index];
 }
-const QNum Input::get_workload(QInt jobID) const {
-	return workload[jobID];
+const QNum Input::get_workload(QInt index) const {
+	return workload[index];
 }
-const QNum Input::get_res_ub(QInt jobID) const {
-	return u_max[jobID];
+const QNum Input::get_res_ub(QInt index) const {
+	return u_max[index];
 }
-const QNum Input::get_res_lb(QInt jobID) const {
-	return u_min[jobID];
+const QNum Input::get_res_lb(QInt index) const {
+	return u_min[index];
 }
-void Input::get_job(const QInt& jobID, QInt& rD, QInt& dD, QNum& wl, QNum& uM,
+void Input::get_job(const QInt& index, QInt& rD, QInt& dD, QNum& wl, QNum& uM,
 		QNum& um) const {
-	rD = releaseDate[jobID];
-	dD = dueDate[jobID];
-	wl = workload[jobID];
-	uM = u_max[jobID];
-	um = u_min[jobID];
+	rD = releaseDate[index];
+	dD = dueDate[index];
+	wl = workload[index];
+	uM = u_max[index];
+	um = u_min[index];
 }
 
 // Adding setting tools for ACPF 2.0, BA 1.0 (May 2016)

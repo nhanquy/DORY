@@ -8,6 +8,7 @@
 #ifndef EV_H_
 #define EV_H_
 #include "TimeRef.h"
+#include "libs/easylogging++.h"
 typedef unsigned int idInt ;
 class EV {
 	friend class Parking;

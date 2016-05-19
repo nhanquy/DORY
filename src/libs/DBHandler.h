@@ -16,15 +16,17 @@
 #include <vector>
 #include <string>
 #include <sstream>
-
+#include "easylogging++.h"
 #define DEBUG
+
 class DB_Handler {
 public:
 	DB_Handler();
+	virtual ~DB_Handler();
 	// Setting database direction
 	void set_db_dir(const char* set_dir);
 	// Actions taken upon this database
-	const bool open_db();
+	bool open_db();
 	void close_db();
 	// Setting user id by user table
 	/*
@@ -47,10 +49,7 @@ public:
 private:
 	sqlite3 *db;
 	std::string db_dir;
-	std::vector<int> user_id;
-	char *zErrMsg;
 	bool db_is_open;
-	static int callback(void *NotUsed, int argc, char **argv, char **azColName);
 };
 
 #endif /* DBHANDLER_H_ */

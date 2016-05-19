@@ -19,6 +19,9 @@
 #include "TimeRef.h"
 #include "EventHandler.h"
 #include "QServer.h"
+#include "libs/easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
 using namespace std;
 int main(int argc, char *argv[]) {
 	/*
@@ -34,17 +37,16 @@ int main(int argc, char *argv[]) {
 	event.setup_db_handler(db_dir);
 	Json::Value root;
 	Json::Reader reader;
-
 	// Configuring server
 	QServer jsonserver(port_no);
 	if (!jsonserver.etablish_connection())
 		exit(1);
 	int pid,client_socket;
-	while (1) {
+	//while (1) {
 		jsonserver.accept_connection(client_socket);
 		pid = fork();
 		if (pid < 0)
-			perror("ERROR on fork");
+			LOG(ERROR) << "ERROR on fork";
 		if (pid == 0) {
 			jsonserver.close_server_socket();
 			// Read buffer
@@ -54,17 +56,17 @@ int main(int argc, char *argv[]) {
 					root);
 			if (!parsingSuccessful) {
 				// report to the user the failure and their locations in the document.
-				DEBUG_LOG << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
+				LOG(ERROR) << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
 			}
 			// Event handling to Parking
 			event.open_hist_db();
 			event.getting_event(root);
 			event.close_hist_db();
+			//
 			jsonserver.write_response(client_socket,"Message read!");
 			exit(0);
 		} else
 			jsonserver.close_client_socket(client_socket);
-	} /* end of while */
+	//} /* end of while */
 	return 0;
-
 }

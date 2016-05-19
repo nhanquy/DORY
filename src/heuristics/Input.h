@@ -14,8 +14,8 @@
 #include <fstream>
 #include <string>
 //
-#include "libs/json/json.h"
-#include "libs/matrix.h"
+#include "../libs/json/json.h"
+#include "../libs/matrix.h"
 //
 using namespace std;
 class Input
@@ -36,12 +36,13 @@ public:
 	const QInt get_timeHorizon() const;
 	const numVec get_bandwidth() const;
 	// Each job
-	const QInt get_releaseDate(QInt jobID) const;
-	const QInt get_dueDate(QInt jobID) const;
-	const QNum get_workload(QInt jobID) const;
-	const QNum get_res_ub(QInt jobID) const;
-	const QNum get_res_lb(QInt jobID) const;
-	void get_job(const QInt& jobID, QInt& rD, QInt& dD, QNum& wl, QNum& uM, QNum& um) const;
+	const QInt get_releaseDate(QInt index) const;
+	const QInt get_dueDate(QInt index) const;
+	const QNum get_workload(QInt index) const;
+	const QNum get_res_ub(QInt index) const;
+	const QNum get_res_lb(QInt index) const;
+	const QInt get_user_ID(QInt index) const;
+	void get_job(const QInt& index, QInt& rD, QInt& dD, QNum& wl, QNum& uM, QNum& um) const;
 	// Adding setting tools for ACPF 2.0, BA 1.0 (May 2016)
 protected: // Can only accessed by class Parking
 	void set_nTasks(int m_n);

@@ -135,7 +135,7 @@ void EV::begin_to_charge(double m_power, double m_stime) {
 	// Event ref: BOC
 	if (charging)
 	{
-		std::cout<<"Error: EV already in charge. Cannot start again! \n";
+		LOG(ERROR)<<"USER_ID:"<<user_id<<": EV already in charge. Cannot start again! \n";
 		return;
 	}
 	starting_time = m_stime;
@@ -148,7 +148,7 @@ void EV::begin_to_charge(double m_power, double m_stime) {
 void EV::changing_charge_power(double new_charging_power, double change_time) {
 	// Event ref: PID
 	if (!charging) {
-		std::cout << "Error: Cannot modify a charge hasn't been started yet! \n";
+		LOG(ERROR)<<"USER_ID:"<<user_id<<": Cannot modify a charge hasn't been started yet!";
 		return;
 	}
 	total_energy += charging_power * (change_time - last_changing_time);
@@ -159,7 +159,7 @@ void EV::changing_charge_power(double new_charging_power, double change_time) {
 void EV::end_of_charge(double e_stime) {
 	// Event ref: FDC
 	if (!charging) {
-		std::cout << "Cannot end a charge hasn't been started yet! Error!\n";
+		LOG(ERROR)<<"USER_ID:"<<user_id<<": Cannot end a charge hasn't been started yet!";
 		return;
 	}
 	total_energy += charging_power * (e_stime - last_changing_time);
@@ -172,12 +172,11 @@ void EV::end_of_charge(double e_stime) {
 void EV::interupting(double set_time) {
 	// Event ref: ANU
 	if (!charging) {
-		std::cout << "Cannot end a charge hasn't been started yet! Error!\n";
+		LOG(ERROR)<<"USER_ID:"<<user_id<<": Cannot end a charge hasn't been started yet!";
 		return;
 	}
 	if (fully_charged) {
-		std::cout
-				<< "Cannot interrupt a charge has been completely charged! Error!\n";
+		LOG(ERROR)<<"USER_ID:"<<user_id<<": Cannot interrupt a charge has been completely charged!";
 		return;
 	}
 	total_energy += charging_power * (set_time - last_changing_time);

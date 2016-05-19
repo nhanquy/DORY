@@ -68,7 +68,7 @@ void Parking::add_EV(int m_user_id, int m_borne_id,
 		EV new_EV(m_user_id, m_borne_id,auth_time, dep_time, est_demand,est_power);
 		fleet.push_back(new_EV);
 	} else
-		std::cout << "Warning: EV already in parking!\n";
+		LOG(WARNING) << "EV: "<<m_user_id<<" already in parking!";
 }
 
 void Parking::remove_EV(int m_user_id) {
@@ -76,7 +76,7 @@ void Parking::remove_EV(int m_user_id) {
 	if (index >= 0) {
 		fleet.erase(fleet.begin() + index);
 	} else
-		std::cout << "Warning: Cannot delete a non-existent EV!\n";
+		LOG(WARNING) << "EV: "<<m_user_id<<" Cannot delete a non-existent EV!";
 }
 
 void Parking::reset_fleet(){
@@ -100,63 +100,63 @@ void Parking::end_of_charge(int user_id) {
 	}
 	fleet[ind].end_of_charge(QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<"'s charging has been ended. \n";
+	LOG(INFO) << "EV: "<<user_id<<"'s charging has been ended. \n";
 	remove_EV(user_id);
 }
 
 void Parking::begin_of_charge(int user_id, double charging_power){
 	int ind = search_by_ID(user_id);
 	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].begin_to_charge(charging_power,QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<" begin to charge at rate "<<charging_power<<"kW. \n";
+	LOG(INFO) << "EV: "<<user_id<<" begin to charge at rate "<<charging_power<<"kW. \n";
 }
 
 void Parking::charge_cancelling(int user_id){
 	int ind = search_by_ID(user_id);
 	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].interupting(QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<"'s charging has been cancelled. \n";
+	LOG(INFO) << "EV: "<<user_id<<"'s charging has been cancelled. \n";
 }
 
 void Parking::forced_charge(int user_id, double charging_power){
 	int ind = search_by_ID(user_id);
 	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].begin_to_charge(charging_power,QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<" forced to charge at rate "<<charging_power<<"kW. \n";
+	LOG(INFO) << "EV: "<<user_id<<" forced to charge at rate "<<charging_power<<"kW. \n";
 }
 
 void Parking::changing_power(int user_id, double new_charging_power){
 	int ind = search_by_ID(user_id);
 	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].changing_charge_power(new_charging_power,QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<" changing charge rate to "<<new_charging_power<<"kW. \n";
+	LOG(INFO) << "EV: "<<user_id<<" changing charge rate to "<<new_charging_power<<"kW. \n";
 }
 
 void Parking::no_charge(int user_id){
 	int ind = search_by_ID(user_id);
 	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].end_of_charge(QTime.hours_now());
 	QTime.print_time_now();
-	std::cout<<"EV "<<user_id<<" consumes no power. \n";
+	LOG(INFO) << "EV: "<<user_id<<" consumes no power. \n";
 }
 
 void Parking::set_fifo(bool m_fifo){
