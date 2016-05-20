@@ -114,7 +114,10 @@ public:
 	/*
 	 *  Reporting & output
 	 */
-	bool response(std::string& msg_output);
+	bool write_response();
+	void write_no_solution();
+	std::string get_message() const;
+	void testing_JSON_inout();
 private:
 	TimeRef Event_Time;
 	DB_Handler hist_db;
@@ -129,6 +132,7 @@ private:
 	intVec prioEV;
 	numVec prioPower;
 	QTimer timer;
+	std::string response_message;
 };
 
 #endif /* EVENTHANDLER_H_ */

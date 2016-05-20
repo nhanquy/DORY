@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	if (!jsonserver.etablish_connection())
 		exit(1);
 	int pid,client_socket;
-	//while (1) {
+	while (1) {
 		jsonserver.accept_connection(client_socket);
 		pid = fork();
 		if (pid < 0)
@@ -57,16 +57,25 @@ int main(int argc, char *argv[]) {
 			if (!parsingSuccessful) {
 				// report to the user the failure and their locations in the document.
 				LOG(ERROR) << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
+				event.MCR();
+				exit(1);
 			}
-			// Event handling to Parking
-			event.open_hist_db();
-			event.getting_event(root);
-			event.close_hist_db();
-			//
-			jsonserver.write_response(client_socket,"Message read!");
+			else{
+				// Message got!
+				// Event handling to Parking
+				event.open_hist_db();
+				event.getting_event(root);
+				event.close_hist_db();
+				// Find solution
+				event.find_solution();
+				// Write message
+				event.write_response();
+			}
+			//Send response
+			jsonserver.write_response(client_socket,event.get_message().c_str());
 			exit(0);
 		} else
 			jsonserver.close_client_socket(client_socket);
-	//} /* end of while */
+	}
 	return 0;
 }

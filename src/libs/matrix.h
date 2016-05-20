@@ -160,5 +160,18 @@ template<typename vecT1, typename vecT2> void get_vector(vecT1& copyArray,
 		copyArray[i] = sourceArray[i];
 	}
 }
+// ------------------------------------------------------------------------
+// Swapping two elements in an array
+// ------------------------------------------------------------------------
+template<typename T, typename vecT>
+void swapping(vecT& vecA, int i, int j) {
+	if (vecA.size()>=j || vecA.size()>=i||i<0||j<0)
+	{
+		return;
+	}
+	T temp = vecA[i];
+	vecA[i] = vecA[j];
+	vecA[j] = temp;
+}
 // END OF ADDITIONAL FUNCTION DEFINITIONS
 #endif /* LIB_MATRIX_H_ */

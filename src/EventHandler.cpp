@@ -101,6 +101,7 @@ void Event_Handler::CNU(int user_id) {
 }
 void Event_Handler::MCR() {
 	message_got=false;
+	response_message = "Message corrupted!";
 }
 ;
 /*
@@ -191,7 +192,7 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 bool Event_Handler::find_solution(){
 	if(FIFO)
 	{
-		LOG(INFO)<<"FIFO configuration, no need to find BA Solution!";
+		LOG(INFO)<<"FIFO configuration, no need to find BA Solution.";
 		return false;
 	}
 	Input ACPF_input;
@@ -199,9 +200,59 @@ bool Event_Handler::find_solution(){
 	algorithm.solve(ACPF_input);
 	if(algorithm.isFeasible()){
 		// Exporting result
-
+		algorithm.priority(prioEV,prioPower,ACPF_input);
+		no_solution = false;
 		return true;
 	}
 	else
+		LOG(INFO)<<"Algorithm cannot find a feasible solution.";
+		no_solution = true;
 		return false;
+}
+
+bool Event_Handler::write_response(){
+	if(prioEV.size()==0 || prioPower.size()==0 || no_solution){
+		write_no_solution();
+		return false;
+	}
+	try{
+		Json::Value root;
+		root.clear();
+		for(unsigned int index = 0; index<prioEV.size(); index++)
+		{
+			root[index]["user_id"] = prioEV[index];
+			root[index]["power"] = prioPower[index];
+		}
+		Json::StyledWriter writer;
+		response_message=writer.write(root);
+		return true;
+	}
+	catch(...){
+		LOG(ERROR)<<"Cannot write solution to JSON msg.";
+		write_no_solution();
+		return false;
+	}
+}
+
+std::string Event_Handler::get_message() const{
+	return response_message;
+}
+
+void Event_Handler::testing_JSON_inout(){
+	prioEV.clear();
+	prioPower.clear();
+	int n=3;
+	for(int i=0; i<n;i++)
+	{
+		prioEV.push_back(i*111);
+		prioPower.push_back(i*11.5);
+	}
+	if (write_response())
+	{
+		std::cout<<response_message;
+	}
+}
+void Event_Handler::write_no_solution(){
+	LOG(ERROR)<<"No solution signal set";
+	response_message = "no_solution";
 }

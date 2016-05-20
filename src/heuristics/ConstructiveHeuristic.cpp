@@ -84,6 +84,14 @@ bool ConstructiveHeuristic::isFeasible()const{
 	return(feasible);
 }
 
+bool dominance(int arr1, int arr2, float pow1, float pow2){
+	if (arr1<arr2)
+		return true;
+	else if(arr1 == arr2 && pow1>pow2)
+		return true;
+	return false;
+}
+
 void ConstructiveHeuristic::priority(intVec& list_EV, numVec& list_Power, const Input& params){
 	list_EV.clear();
 	list_Power.clear();
@@ -94,9 +102,13 @@ void ConstructiveHeuristic::priority(intVec& list_EV, numVec& list_Power, const 
 		list_Power.push_back(resource_allocation[i][start_time[i]]);
 		list_Arrival.push_back(start_time[i]);
 	}
-
-
 	// Bubble simple sort for the priority of EV
-
-
+	for (int i=0;i<nTasks;++i)
+		for(int j=i;j<nTasks;j++)
+			if (dominance(list_Arrival[j], list_Arrival[i],list_Power[j], list_Power[i]))
+			{
+				swapping<QInt,intVec>(list_Arrival,i,j);
+				swapping<QNum,numVec>(list_Power,i,j);
+				swapping<QInt,intVec>(list_EV,i,j);
+			}
 }
