@@ -14,9 +14,7 @@ DB_Handler::~DB_Handler(){
 }
 void DB_Handler::set_db_dir(const char* set_dir) {
 	db_dir = std::string(set_dir);
-#ifdef DEBUG
-	printf("db_dir = %s\n", db_dir.c_str());
-#endif
+	LOG(DEBUG)<<"db_dir ="<< db_dir.c_str();
 }
 
 bool DB_Handler::open_db() {
@@ -49,32 +47,24 @@ double DB_Handler::get_est_demand(const int user_id, bool& user_existed){
 		return 0;
 	std::string query;
 	sqlite3_stmt * stmt;
-	query = "SELECT value FROM est_demand WHERE user_id="+ num2string<int>(user_id)+ ";";
-#ifdef DEBUG
-	fprintf(stderr, "query=%s \n", query.c_str());
-#endif
+	query = "SELECT demand FROM estimation WHERE user_id="+ num2string<int>(user_id)+ ";";
+	LOG(DEBUG)<<"query="<<query.c_str();
 	sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
 	sqlite3_step(stmt);
 	if (sqlite3_column_int(stmt, 0)) {
 		double result = sqlite3_column_double(stmt, 0);
-#ifdef DEBUG
-		fprintf(stderr, "user_id=%d : est_demand = %f \n",user_id, result);
-#endif
+		LOG(DEBUG)<<"user_id="<<user_id<<" est_demand ="<<result;
 		user_existed = true;
 		return(result);
 	} else
 	{
 		user_existed = false;
-		query ="SELECT value FROM est_demand WHERE user_id=0;";//Loading default parameters
-#ifdef DEBUG
-		fprintf(stderr, "query=%s \n", query.c_str());
-#endif
+		query ="SELECT demand FROM estimation WHERE user_id=0;";//Loading default parameters
+		LOG(DEBUG)<<"query="<<query.c_str();
 		sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
 		sqlite3_step(stmt);
 		double result = sqlite3_column_double(stmt, 0);
-#ifdef DEBUG
-		fprintf(stderr, "user_id=%d : load  default est_demand = %f\n",user_id, result);
-#endif
+		LOG(DEBUG)<<"user_id="<<user_id<<" load  default est_demand "<<result;
 		return(result);
 	}
 }
@@ -85,32 +75,24 @@ std::string DB_Handler::get_exp_depature(const int user_id, bool& user_existed){
 		return 0;
 	std::string query;
 	sqlite3_stmt * stmt;
-	query = "SELECT value FROM est_demand WHERE user_id="+ num2string<int>(user_id)+ ";";
-#ifdef DEBUG
-	fprintf(stderr, "query=%s \n", query.c_str());
-#endif
+	query = "SELECT departure FROM estimation WHERE user_id="+ num2string<int>(user_id)+ ";";
+	LOG(DEBUG)<<"query="<<query.c_str();
 	sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
 	sqlite3_step(stmt);
 	if (sqlite3_column_int(stmt, 0)) {
 		std::string result(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-#ifdef DEBUG
-		fprintf(stderr, "user_id=%d : exp_depature = %s \n",user_id, result.c_str());
-#endif
+		LOG(DEBUG)<<"user_id="<<user_id<<" exp_depature = "<<result.c_str();
 		user_existed = true;
 		return(result);
 	} else
 	{
 		user_existed = false;
-		query ="SELECT value FROM est_demand WHERE user_id=0;";//Loading default parameters
-#ifdef DEBUG
-		fprintf(stderr, "query=%s \n", query.c_str());
-#endif
+		query ="SELECT departure FROM estimation WHERE user_id=0;";//Loading default parameters
+		LOG(DEBUG)<<"query="<<query.c_str();
 		sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
 		sqlite3_step(stmt);
 		std::string result(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-#ifdef DEBUG
-		fprintf(stderr, "user_id=%d : load  default exp_depature = %s\n",user_id, result.c_str());
-#endif
+		LOG(DEBUG)<<"user_id="<<user_id<<" load default exp_depature = "<<result.c_str();
 		return(result);
 	}
 }

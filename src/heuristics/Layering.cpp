@@ -14,7 +14,7 @@ Layering::Layering() :
 
 QNum Layering::get_peak(int start, int end, numVec res_row, QNum& sum) {
 	if ((unsigned int) end >= res_row.size()) {
-		DEBUG_LOG << "res_row out of rank: ending at " << end << " instead of "
+		LOG(DEBUG) << "res_row out of rank: ending at " << end << " instead of "
 				<< res_row.size();
 		feasible = false;
 		return -1;
@@ -26,18 +26,16 @@ QNum Layering::get_peak(int start, int end, numVec res_row, QNum& sum) {
 	int pos;
 	QNum maxpeak = max_vector<QNum>(sum_vec, pos);
 
-	/* DEBUG
-	 DEBUG_LOG<<"Get_peak: start "<<start<<" end "<<end<<endl;
+	 LOG(DEBUG)<<"Get_peak: start "<<start<<" end "<<end<<endl;
 	 disp_vector(sub_row,"sub_row");
 	 disp_vector(sub_res,"sub_res");
 	 disp_vector(sum_vec,"sum_res");
-	 DEBUG_LOG << "Max peak: " << maxpeak << endl << endl;
-	 END DEBUG */
+	 LOG(DEBUG) << "Max peak: " << maxpeak << endl << endl;
 	return (maxpeak);
 }
 QNum Layering::round_res(QNum workload, QInt dur, QNum res_lb) {
 	if (dur == 0) {
-		DEBUG_LOG << "Division by zeros!\n";
+		LOG(DEBUG) << "Division by zeros!";
 		return (0);
 	}
 	QNum rr = (QNum) workload / dur;
@@ -76,10 +74,8 @@ void Layering::get_used_resource(const numVec& bandwidth) {
 
 void Layering::minmax_planning(int jobID, QNum workload, QNum res_lb,
 		QNum res_ub, QInt releaseDate, QInt dueDate) {
-	/* DEBUG
-	 DEBUG_LOG << "Minmax planning for task " << jobID << endl;
-	 disp_vector(used_resource, "before planning: used_resource");
-	 END DEBUG */
+	LOG(DEBUG) << "Minmax planning for task " << jobID << endl;
+	disp_vector(used_resource, "before planning: used_resource");
 	QInt dur_max = (QInt) ceil(workload / res_lb);
 	if (dur_max > dueDate - releaseDate)
 		dur_max = dueDate - releaseDate;
@@ -115,9 +111,7 @@ void Layering::minmax_planning(int jobID, QNum workload, QNum res_lb,
 		feasible = false;
 	else
 		used_resource = vec_sum(used_resource, resource_allocation[jobID]);
-	/* DEBUG
-	 disp_vector(used_resource,"after planning: used_resource");
-	 END DEBUG */
+	disp_vector(used_resource,"after planning: used_resource");
 }
 
 void Layering::allocate_resource(int start, int end, QNum res,
@@ -131,7 +125,7 @@ void Layering::allocate_resource(int start, int end, QNum res,
 }
 
 void Layering::solve(Input params, std::vector<int> tasks_queue) {
-	DEBUG_LOG << "Begin to layer tasks...\n";
+	LOG(DEBUG) << "Begin to layer tasks...\n";
 	initialize(params.get_nTasks(), params.get_timeHorizon());
 	get_used_resource(params.get_bandwidth());
 	int tasks_count = 0;
@@ -148,11 +142,11 @@ void Layering::solve(Input params, std::vector<int> tasks_queue) {
 		++tasks_count;
 	}
 	if (feasible) {
-		LOG(INFO) << "\nLayering done!";
-		//disp_matrix(resource_allocation, "Resource allocation");
+		LOG(INFO) << "Layering done!";
+		disp_matrix(resource_allocation, "Resource allocation");
 	} else {
-		LOG(INFO) << "\nUnable to find solution!";
-		//disp_matrix(resource_allocation, "Resource allocation");
+		LOG(INFO) << "Unable to find solution!";
+		disp_matrix(resource_allocation, "Resource allocation");
 	}
 }
 

@@ -24,6 +24,7 @@ void Event_Handler::read_config(const char* config_file, const char* config_id) 
 	}
 	Json::Value root;   // will contains the root value after parsing.
 	Json::Reader reader;
+	LOG(DEBUG)<<"Begin to configure Parking";
 	bool parsingSuccessful = reader.parse(jsonDoc, root);
 	if (!parsingSuccessful) {
 		// report to the user the failure and their locations in the document.
@@ -34,12 +35,17 @@ void Event_Handler::read_config(const char* config_file, const char* config_id) 
 	root = root[config_id];
 	// Get number of jobs
 	timestr start_time = root["Start_time"].asString();
+	LOG(DEBUG)<<"Start time read: "<<start_time;
 	timestr end_time = root["End_time"].asString();
+	LOG(DEBUG)<<"End time read: "<<end_time;
 	double set_bw = root["Bandwidth"].asDouble();
+	LOG(DEBUG)<<"Bandwidth read: "<<set_bw;
 	double delta_t = root["Block_duration"].asDouble();
+	LOG(DEBUG)<<"Block duration read: "<<delta_t;
 	FIFO = root["FIFO"].asBool();
 	// BA general configurations
 	algorithm_timeout = root["BA_timeout"].asDouble();
+	LOG(DEBUG)<<"BA Timeout read: "<<algorithm_timeout;
 	// Time Configuration
 	Event_Time = TimeRef(start_time, end_time, delta_t);
 	// Parking configurations
@@ -72,6 +78,7 @@ void Event_Handler::close_hist_db() {
 
 void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
 	bool existed;
+	LOG(DEBUG)<<"AUT event being read...";
 	double est_demand = hist_db.get_est_demand(user_id, existed);
 	timestr exp_departure = hist_db.get_exp_depature(user_id, existed);
 	double hours_dep = Event_Time.timestr_to_block(exp_departure);
@@ -195,12 +202,16 @@ bool Event_Handler::find_solution(){
 		LOG(INFO)<<"FIFO configuration, no need to find BA Solution.";
 		return false;
 	}
+	QTimer timer;
+	timer.set_timeout(algorithm_timeout);
+	timer.start();
 	Input ACPF_input;
 	parking.export_ACPF_input(ACPF_input);
 	algorithm.solve(ACPF_input);
 	if(algorithm.isFeasible()){
 		// Exporting result
 		algorithm.priority(prioEV,prioPower,ACPF_input);
+		LOG(INFO)<<"Solution found.";
 		no_solution = false;
 		return true;
 	}
@@ -212,6 +223,7 @@ bool Event_Handler::find_solution(){
 
 bool Event_Handler::write_response(){
 	if(prioEV.size()==0 || prioPower.size()==0 || no_solution){
+		LOG(ERROR)<<"No EV priority is set.";
 		write_no_solution();
 		return false;
 	}

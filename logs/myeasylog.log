@@ -1,1 +1,4 @@
 2016-05-18 14:49:54,388 INFO  [default] Test debug!
+2016-05-23 13:59:45,845 DEBUG [default] [nhanquy@unknown-host] [void DB_Handler::set_db_dir(const char*)] [../src/libs/DBHandler.cpp:17] db_dir =hist_db
+2016-05-23 13:59:45,845 ERROR [default] bind() failed
+2016-05-23 13:59:45,845 ERROR [default] Could not start the server at port 10001

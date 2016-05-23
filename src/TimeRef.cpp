@@ -69,7 +69,7 @@ bool TimeRef::isInHorizon(const timestr& to_valide) const {
 double TimeRef::difference(timestr t1, timestr t2) const {
 	int h1, h2, m1, m2, s1, s2;
 	if (!timestr_parser(t1, h1, m1, s1) || !timestr_parser(t2, h2, m2, s2)) {
-		LOG(ERROR) <<"Invalid time-string hh:mm:ss";
+		LOG(ERROR) <<"Invalid time-string hh:mm:ss at "<<t1<<" or "<<t2;
 		return -1;
 	}
 	double result = (double) (h2 - h1) + (double) (m2 - m1) / 60
@@ -126,7 +126,7 @@ int TimeRef::timestr_to_block(timestr set_time) const {
 // Getting time
 
 timestr TimeRef::time_now() const {
-	static int seconds_last = 99;
+	int seconds_last = 99;
 	char TimeString[128];
 
 	timeval curTime;
@@ -137,6 +137,7 @@ timestr TimeRef::time_now() const {
 	seconds_last = curTime.tv_sec;
 
 	strftime(TimeString, 80, "%H:%M:%S", localtime(&curTime.tv_sec));
+	LOG(DEBUG)<<"Get time now: "<<TimeString;
 	return (std::string(TimeString));
 }
 

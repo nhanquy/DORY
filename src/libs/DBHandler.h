@@ -17,7 +17,6 @@
 #include <string>
 #include <sstream>
 #include "easylogging++.h"
-
 class DB_Handler {
 public:
 	DB_Handler();

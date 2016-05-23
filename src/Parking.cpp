@@ -8,7 +8,8 @@
 #include "Parking.h"
 
 Parking::Parking() :
-		bandwidth(0), config_done(false), operating(false), fifo(true), config_count(0){
+		bandwidth(0), config_done(false), operating(false), fifo(true), config_count(
+				0) {
 	// Default constructor applied for
 	// Time RefQTime and vector<EV> fleet.
 }
@@ -16,7 +17,7 @@ Parking::Parking() :
 Parking::Parking(const TimeRef& config_time, const double& set_bw,
 		bool set_fifo) :
 		bandwidth(set_bw), QTime(config_time), config_done(true), operating(
-				false), fifo(true),config_count(2){
+				false), fifo(true), config_count(2) {
 	// Default constructor applied for
 	// vector<EV> fleet
 }
@@ -62,13 +63,15 @@ void Parking::set_bandwidth(const double set_bw) {
 
 // EV management
 
-void Parking::add_EV(int m_user_id, int m_borne_id,
-		double auth_time, double dep_time, double est_demand, double est_power) {
+void Parking::add_EV(int m_user_id, int m_borne_id, double auth_time,
+		double dep_time, double est_demand, double est_power) {
 	if (search_by_ID(m_user_id) == -1) {
-		EV new_EV(m_user_id, m_borne_id,auth_time, dep_time, est_demand,est_power);
+		EV new_EV(m_user_id, m_borne_id, auth_time, dep_time, est_demand,
+				est_power);
 		fleet.push_back(new_EV);
-	} else
-		LOG(WARNING) << "EV: "<<m_user_id<<" already in parking!";
+		LOG(INFO)<<"Add EV id:"<<m_user_id<<" borne_id: "<<m_borne_id<<" auth: "<<auth_time<<" exp_dep: "<<dep_time<< " est_demand: "<<est_demand<<" est_power "<<est_power;
+} else
+	LOG(WARNING)<< "EV: "<<m_user_id<<" already in parking!";
 }
 
 void Parking::remove_EV(int m_user_id) {
@@ -76,10 +79,10 @@ void Parking::remove_EV(int m_user_id) {
 	if (index >= 0) {
 		fleet.erase(fleet.begin() + index);
 	} else
-		LOG(WARNING) << "EV: "<<m_user_id<<" Cannot delete a non-existent EV!";
-}
+		LOG(WARNING)<< "EV: "<<m_user_id<<" Cannot delete a non-existent EV!";
+	}
 
-void Parking::reset_fleet(){
+void Parking::reset_fleet() {
 	fleet.clear();
 }
 // Searching tools
@@ -94,72 +97,72 @@ int Parking::search_by_ID(int user_id) const {
 
 void Parking::end_of_charge(int user_id) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		std::cout<<"Error: EV non-existent!\n";
+	if (ind == -1) {
+		std::cout << "Error: EV non-existent!\n";
 		return;
 	}
 	fleet[ind].end_of_charge(QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<"'s charging has been ended. \n";
+	LOG(INFO)<< "EV: "<<user_id<<"'s charging has been ended. \n";
 	remove_EV(user_id);
 }
 
-void Parking::begin_of_charge(int user_id, double charging_power){
+void Parking::begin_of_charge(int user_id, double charging_power) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
+	if (ind == -1) {
+		LOG(WARNING)<< "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
-	fleet[ind].begin_to_charge(charging_power,QTime.hours_now());
+	fleet[ind].begin_to_charge(charging_power, QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<" begin to charge at rate "<<charging_power<<"kW. \n";
+	LOG(INFO)<< "EV: "<<user_id<<" begin to charge at rate "<<charging_power<<"kW. \n";
 }
 
-void Parking::charge_cancelling(int user_id){
+void Parking::charge_cancelling(int user_id) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
+	if (ind == -1) {
+		LOG(WARNING)<< "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].interupting(QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<"'s charging has been cancelled. \n";
+	LOG(INFO)<< "EV: "<<user_id<<"'s charging has been cancelled. \n";
 }
 
-void Parking::forced_charge(int user_id, double charging_power){
+void Parking::forced_charge(int user_id, double charging_power) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
+	if (ind == -1) {
+		LOG(WARNING)<< "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
-	fleet[ind].begin_to_charge(charging_power,QTime.hours_now());
+	fleet[ind].begin_to_charge(charging_power, QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<" forced to charge at rate "<<charging_power<<"kW. \n";
+	LOG(INFO)<< "EV: "<<user_id<<" forced to charge at rate "<<charging_power<<"kW. \n";
 }
 
-void Parking::changing_power(int user_id, double new_charging_power){
+void Parking::changing_power(int user_id, double new_charging_power) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
+	if (ind == -1) {
+		LOG(WARNING)<< "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
-	fleet[ind].changing_charge_power(new_charging_power,QTime.hours_now());
+	fleet[ind].changing_charge_power(new_charging_power, QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<" changing charge rate to "<<new_charging_power<<"kW. \n";
+	LOG(INFO)<< "EV: "<<user_id<<" changing charge rate to "<<new_charging_power<<"kW. \n";
 }
 
-void Parking::no_charge(int user_id){
+void Parking::no_charge(int user_id) {
 	int ind = search_by_ID(user_id);
-	if(ind==-1){
-		LOG(WARNING) << "EV: "<<user_id<<" non-existent!\n";
+	if (ind == -1) {
+		LOG(WARNING)<< "EV: "<<user_id<<" non-existent!\n";
 		return;
 	}
 	fleet[ind].end_of_charge(QTime.hours_now());
 	QTime.print_time_now();
-	LOG(INFO) << "EV: "<<user_id<<" consumes no power. \n";
+	LOG(INFO)<< "EV: "<<user_id<<" consumes no power. \n";
 }
 
-void Parking::set_fifo(bool m_fifo){
+void Parking::set_fifo(bool m_fifo) {
 	fifo = m_fifo;
 }
 
@@ -168,39 +171,41 @@ void Parking::set_fifo(bool m_fifo){
 // Changing real-time information into technical input for algorithm ACPF
 //
 
-void Parking::export_ACPF_input(Input &ACPF_input){
+void Parking::export_ACPF_input(Input &ACPF_input) {
+	LOG(DEBUG)<<"Exporting input for ACPF";
 	TimeRef ACPF_Time(QTime);
 	ACPF_Time.set_start_horizon(QTime.time_now());
 	double ref_now = QTime.hours_now();
 	int n = fleet.size();
 	int H = ACPF_Time.block_end();
-	intVec user_id = intVec(0,n);
-	intVec departure = intVec(0,n);
-	intVec arrival = intVec(0,n);
-	numVec u = numVec(0,n);
-	numVec workload = numVec(0,n);
-	for(int i=0; i<n;i++){
+	LOG(DEBUG)<<"Time horizon: "<<H;
+	LOG(DEBUG)<<"Number of EV: "<<n;
+	intVec user_id = intVec(n,0);
+	intVec departure = intVec(n,0);
+	intVec arrival = intVec(n,0);
+	numVec u = numVec(n,0);
+	numVec workload = numVec(n,0);
+	//LOG(DEBUG)<<"Adding EV to input...";
+	for (int i = 0; i < n; i++) {
 		user_id[i] = fleet[i].get_user_id();
 		u[i] = fleet[i].get_charging_power();
 		// Verifying at first if the EV is in charging or not
-		if (fleet[i].is_charging())
-		{
+		if (fleet[i].is_charging()) {
 			// Getting energy left to charge to fix the time-windows
-			double energy_left = fleet[i].est_demand-fleet[i].estimate_consumptions(ref_now);
+			double energy_left = fleet[i].est_demand
+					- fleet[i].estimate_consumptions(ref_now);
 			// If energy left is negative (estimated value < actual value)
-			if (energy_left<=0)
-			{
+			if (energy_left <= 0) {
 				// Increase the estimation value by a portion of addition_est by actual value
-				energy_left = addition_est*fleet[i].estimate_consumptions(ref_now);
-				fleet[i].set_est_demand((1/addition_est+1)*energy_left);
+				energy_left = addition_est
+						* fleet[i].estimate_consumptions(ref_now);
+				fleet[i].set_est_demand((1 / addition_est + 1) * energy_left);
 			}
 			// Fixing time-windows so the scheduled charge will be untouched by ACPF
-			double m_departure = ref_now+energy_left/u[i];
+			double m_departure = ref_now + energy_left / u[i];
 			departure[i] = QTime.double_to_block(m_departure);
 			workload[i] = energy_left;
-		}
-		else
-		{
+		} else {
 			departure[i] = QTime.double_to_block(fleet[i].get_exp_departure());
 			workload[i] = fleet[i].get_est_demand();
 		}
@@ -209,8 +214,9 @@ void Parking::export_ACPF_input(Input &ACPF_input){
 		// Arrival constraints relaxed
 		arrival[i] = 0;
 	}
-	numVec arr_bandwidth = numVec(bandwidth,H);
+	numVec arr_bandwidth = numVec(H, bandwidth);
 	// Setting new input
+	LOG(DEBUG)<<"Setting new input...";
 	ACPF_input.set_nTasks(n);
 	ACPF_input.set_timeHorizon(H);
 	ACPF_input.set_user_id(user_id);
@@ -219,4 +225,6 @@ void Parking::export_ACPF_input(Input &ACPF_input){
 	ACPF_input.set_dueDate(departure);
 	ACPF_input.set_releaseDate(arrival);
 	ACPF_input.set_workload(workload);
+	ACPF_input.set_bandwidth(arr_bandwidth);
+	ACPF_input.display();
 }

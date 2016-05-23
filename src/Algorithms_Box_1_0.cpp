@@ -60,30 +60,34 @@ int main(int argc, char *argv[]) {
 					if (!parsingSuccessful) {
 						// Shutdown case
 						if (str_line.find("shutdown") != std::string::npos) {
-							std::string shutdown_message = "Server shuting down...";
-							stream->send(shutdown_message.c_str(),shutdown_message.size());
+							std::string shutdown_message =
+									"Server shuting down...";
+							stream->send(shutdown_message.c_str(),
+									shutdown_message.size());
 							delete stream;
 							LOG(INFO)<<"Closing socket... Shutdown server...";
 							exit(0);
-						} else
+						} else {
 							// Report to the user the failure and their locations in the document.
 							LOG(ERROR)<< "Failed to parse input file: "<< reader.getFormattedErrorMessages();
 							event.MCR();
 						}
-						else { // Parsing successfully
-							event.open_hist_db();
-							event.getting_event(root);
-							event.close_hist_db();
-							// Find solution
-							event.find_solution();
-							// Write message
-							event.write_response();
-						}
-						//Send response
+					}
+					else { // Parsing successfully
+						event.open_hist_db();
+						event.getting_event(root);
+						event.close_hist_db();
+						// Find solution
+						event.find_solution();
+						// Write message
+						event.write_response();
+					}
+					//Send response
 					line[len] = 0;
 					LOG(INFO)<<"Server received: "<<line;
-					stream->send(event.get_message().c_str(), event.get_message().size());
-				} // End if len>0
+					stream->send(event.get_message().c_str(),
+							event.get_message().size());
+				}
 			} else
 				// I stream->accept encounter error(s)
 				error_count++;

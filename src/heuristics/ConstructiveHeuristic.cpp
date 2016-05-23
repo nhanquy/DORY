@@ -55,13 +55,11 @@ void ConstructiveHeuristic::solve(Input params)
 	Layering layering;
 	for(int iter=0; iter<layering_max_iter;++iter)
 	{
-		// DEBUG:
 		disp_vector(layering_queue, "Tasks queue");
-		// END DEBUG
 		layering.solve(params,layering_queue);
 		if (layering.isFeasible())
 		{
-			DEBUG_LOG << "Feasible solution found!! \n";
+			LOG(DEBUG) << "Feasible solution found!! \n";
 			feasible=true;
 			break;
 		} else shuffle_queue(layering_queue);
@@ -97,6 +95,7 @@ void ConstructiveHeuristic::priority(intVec& list_EV, numVec& list_Power, const 
 	list_Power.clear();
 	intVec list_Arrival;
 	unsigned int nTasks = start_time.size();
+	LOG(DEBUG)<<"n="<<nTasks;
 	for (unsigned int i=0;i<nTasks;i++){
 		list_EV.push_back(params.get_user_ID(i));
 		list_Power.push_back(resource_allocation[i][start_time[i]]);
