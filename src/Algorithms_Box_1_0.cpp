@@ -18,15 +18,21 @@
 #include <netinet/in.h>
 #include "TimeRef.h"
 #include "EventHandler.h"
-#include "QServer.h"
+#include "TCPSockets/tcpacceptor.h"
 #include "libs/easylogging++.h"
-
+#define ERROR_LIMIT 100
 INITIALIZE_EASYLOGGINGPP
 using namespace std;
 int main(int argc, char *argv[]) {
 	/*
 	 * argv = config_dir, config_id, db_dir, port_no
 	 */
+	/*
+	 * Setting easylogging++
+	 */
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput,
+			"false");
+	// Config done!
 	const char* config_dir = argv[1];
 	const char* config_id = argv[2];
 	const char* db_dir = argv[3];
@@ -38,44 +44,53 @@ int main(int argc, char *argv[]) {
 	Json::Value root;
 	Json::Reader reader;
 	// Configuring server
-	QServer jsonserver(port_no);
-	if (!jsonserver.etablish_connection())
-		exit(1);
-	int pid,client_socket;
-	while (1) {
-		jsonserver.accept_connection(client_socket);
-		pid = fork();
-		if (pid < 0)
-			LOG(ERROR) << "ERROR on fork";
-		if (pid == 0) {
-			jsonserver.close_server_socket();
-			// Read buffer
-			jsonserver.read_buffer(client_socket);
-			// Parsing into JSON value
-			bool parsingSuccessful = reader.parse(jsonserver.get_buffer(),
-					root);
-			if (!parsingSuccessful) {
-				// report to the user the failure and their locations in the document.
-				LOG(ERROR) << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
-				event.MCR();
-				exit(1);
-			}
-			else{
-				// Message got!
-				// Event handling to Parking
-				event.open_hist_db();
-				event.getting_event(root);
-				event.close_hist_db();
-				// Find solution
-				event.find_solution();
-				// Write message
-				event.write_response();
-			}
-			//Send response
-			jsonserver.write_response(client_socket,event.get_message().c_str());
-			exit(0);
-		} else
-			jsonserver.close_client_socket(client_socket);
+	TCPStream* stream = NULL;
+	TCPAcceptor* acceptor = NULL;
+	acceptor = new TCPAcceptor(port_no);
+	if (acceptor->start() == 0) {
+		int error_count = 0;
+		while (error_count < ERROR_LIMIT) {
+			stream = acceptor->accept();
+			if (stream != NULL) {
+				ssize_t len;
+				char line[1024];
+				if ((len = stream->receive(line, sizeof(line))) > 0) {
+					std::string str_line(line);
+					bool parsingSuccessful = reader.parse(line, root);
+					if (!parsingSuccessful) {
+						// Shutdown case
+						if (str_line.find("shutdown") != std::string::npos) {
+							std::string shutdown_message = "Server shuting down...";
+							stream->send(shutdown_message.c_str(),shutdown_message.size());
+							delete stream;
+							LOG(INFO)<<"Closing socket... Shutdown server...";
+							exit(0);
+						} else
+							// Report to the user the failure and their locations in the document.
+							LOG(ERROR)<< "Failed to parse input file: "<< reader.getFormattedErrorMessages();
+							event.MCR();
+						}
+						else { // Parsing successfully
+							event.open_hist_db();
+							event.getting_event(root);
+							event.close_hist_db();
+							// Find solution
+							event.find_solution();
+							// Write message
+							event.write_response();
+						}
+						//Send response
+					line[len] = 0;
+					LOG(INFO)<<"Server received: "<<line;
+					stream->send(event.get_message().c_str(), event.get_message().size());
+				} // End if len>0
+			} else
+				// I stream->accept encounter error(s)
+				error_count++;
+			// Error or not, closing steam after all
+			delete stream;
+		}
 	}
-	return 0;
+	LOG(ERROR)<<"Could not start the server at port "<<port_no;
+	exit(-1);
 }
