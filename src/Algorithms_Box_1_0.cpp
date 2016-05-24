@@ -72,46 +72,57 @@ int main(int argc, char *argv[]) {
 			if (stream != NULL) {
 				ssize_t len;
 				char line[1024];
-				if ((len = stream->receive(line, sizeof(line))) > 0) {
+				bool communicating = true;
+				while (communicating) {
+					len = stream->receive(line, sizeof(line));
 					std::string str_line(line);
 					bool parsingSuccessful = reader.parse(line, root);
-					if (!parsingSuccessful) {
+					if (!parsingSuccessful)
 						// Shutdown case
 						if (str_line.find("shutdown") != std::string::npos) {
 							std::string shutdown_message =
-									"Server shuting down...";
+									"Server shutting down...";
 							stream->send(shutdown_message.c_str(),
 									shutdown_message.size());
 							delete stream;
 							LOG(INFO)<<"Closing socket... Shutdown server...";
 							exit(0);
+						}
+						// close_socket case
+						else if (str_line.find("close_socket")
+								!= std::string::npos) {
+							std::string shutdown_message = "Socket closing...";
+							stream->send(shutdown_message.c_str(),
+									shutdown_message.size());
+							LOG(INFO)<<"Socket closed";
+							communicating = false;
 						} else {
 							// Report to the user the failure and their locations in the document.
 							LOG(ERROR)<< "Failed to parse input file: "<< reader.getFormattedErrorMessages();
 							event.MCR();
 						}
-					}
 					else { // Parsing successfully
-						// Open the historical database to prepare estimation data
-						// for Event Handler to acquire it later
+						   // Open the historical database to prepare estimation data
+						   // for Event Handler to acquire it later
 						event.open_hist_db();
-						// Getting the events from client's message
+						   // Getting the events from client's message
 						bool event_catched = event.getting_event(root);
-						// Close the event when done
+						   // Close the event when done
 						event.close_hist_db();
-						// Find solution
+						   // Find solution
 						if (event_catched) event.find_solution();
 						else event.MCR();
-						// Write message
+						   // Write message
 						event.write_response();
 					}
 					//Send response
 					line[len] = 0;
 					LOG(INFO)<<"Server received: "<<line;
-					stream->send(event.get_message().c_str(),
+					if (communicating)stream->send(event.get_message().c_str(),
 							event.get_message().size());
-				}
-			} else // If stream->accept encounter error(s)
+				}						   // End while
+			} else
+				// If stream->accept encounter error(s)
 				error_count++;
 			// Error or not, closing steam after all
 			delete stream;
