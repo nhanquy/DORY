@@ -9,17 +9,19 @@
 
 Event_Handler::Event_Handler() :
 		config_got(false), hist_db_setup(false), message_got(false), error(
-				false), no_solution(true), FIFO(true),algorithm_timeout(20) {
+				false), no_solution(true), FIFO(true), event_detected(false), algorithm_timeout(
+				20) {
 }
 
 /*
  * OBJECT CONFIGURATIONS
  */
 
-void Event_Handler::read_config(const char* config_file, const char* config_id) {
+void Event_Handler::read_config(const char* config_file,
+		const char* config_id) {
 	std::ifstream jsonDoc(config_file, std::ifstream::binary);
 	if (!jsonDoc.is_open()) {
-		LOG(ERROR) << "Unable to open file" << config_file;
+		LOG(ERROR)<< "Unable to open file" << config_file;
 		return;
 	}
 	Json::Value root;   // will contains the root value after parsing.
@@ -28,7 +30,7 @@ void Event_Handler::read_config(const char* config_file, const char* config_id) 
 	bool parsingSuccessful = reader.parse(jsonDoc, root);
 	if (!parsingSuccessful) {
 		// report to the user the failure and their locations in the document.
-		LOG(ERROR) << "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
+		LOG(ERROR)<< "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
 		return;
 	}
 	// Re-map root
@@ -89,26 +91,33 @@ void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
 	double hours_arr = Event_Time.hours_now();
 	parking.add_EV(user_id, borne_id, hours_arr, hours_dep, est_demand,
 			charging_power);
+	event_detected = true;
 }
 
 void Event_Handler::FDC(int user_id) {
 	parking.end_of_charge(user_id);
+	event_detected = true;
 }
 void Event_Handler::ANU(int user_id) {
 	parking.charge_cancelling(user_id);
+	event_detected = true;
 }
 void Event_Handler::DCF(int user_id, double charging_power) {
 	parking.forced_charge(user_id, charging_power);
+	event_detected = true;
 }
 void Event_Handler::PID(int user_id, double charging_power) {
 	parking.changing_power(user_id, charging_power);
+	event_detected = true;
 }
 void Event_Handler::CNU(int user_id) {
 	parking.no_charge(user_id);
+	event_detected = true;
 }
 void Event_Handler::MCR() {
-	message_got=false;
+	message_got = false;
 	response_message = "Message corrupted!";
+	event_detected = true;
 }
 ;
 /*
@@ -116,6 +125,7 @@ void Event_Handler::MCR() {
  */
 bool Event_Handler::getting_event(const Json::Value& root) {
 	// AUT: Authentification
+	event_detected = false;
 	const Json::Value root_AUT = root["AUT"];
 	for (unsigned int index = 0; index < root_AUT.size(); index++) {
 		try {
@@ -185,10 +195,9 @@ bool Event_Handler::getting_event(const Json::Value& root) {
 			return false;
 		}
 	}
-	message_got=true;
-	return true;
+	message_got = true;
+	return event_detected;
 }
-
 
 /*
  *  Resolution procedure
@@ -196,9 +205,8 @@ bool Event_Handler::getting_event(const Json::Value& root) {
  *  2. ACPF get the input to solve for solution
  *  3. Solution analyzer is used to sort EVs queue
  */
-bool Event_Handler::find_solution(){
-	if(FIFO)
-	{
+bool Event_Handler::find_solution() {
+	if (FIFO) {
 		LOG(INFO)<<"FIFO configuration, no need to find BA Solution.";
 		return false;
 	}
@@ -208,7 +216,7 @@ bool Event_Handler::find_solution(){
 	Input ACPF_input;
 	parking.export_ACPF_input(ACPF_input);
 	algorithm.solve(ACPF_input);
-	if(algorithm.isFeasible()){
+	if(algorithm.isFeasible()) {
 		// Exporting result
 		algorithm.priority(prioEV,prioPower,ACPF_input);
 		LOG(INFO)<<"Solution found.";
@@ -216,18 +224,18 @@ bool Event_Handler::find_solution(){
 		return true;
 	}
 	else
-		LOG(INFO)<<"Algorithm cannot find a feasible solution.";
-		no_solution = true;
-		return false;
+	LOG(INFO)<<"Algorithm cannot find a feasible solution.";
+	no_solution = true;
+	return false;
 }
 
-bool Event_Handler::write_response(){
-	if(prioEV.size()==0 || prioPower.size()==0 || no_solution){
+bool Event_Handler::write_response() {
+	if (prioEV.size() == 0 || prioPower.size() == 0 || no_solution) {
 		LOG(ERROR)<<"No EV priority is set.";
 		write_no_solution();
 		return false;
 	}
-	try{
+	try {
 		Json::Value root;
 		root.clear();
 		for(unsigned int index = 0; index<prioEV.size(); index++)
@@ -239,32 +247,30 @@ bool Event_Handler::write_response(){
 		response_message=writer.write(root);
 		return true;
 	}
-	catch(...){
+	catch(...) {
 		LOG(ERROR)<<"Cannot write solution to JSON msg.";
 		write_no_solution();
 		return false;
 	}
 }
 
-std::string Event_Handler::get_message() const{
+std::string Event_Handler::get_message() const {
 	return response_message;
 }
 
-void Event_Handler::testing_JSON_inout(){
+void Event_Handler::testing_JSON_inout() {
 	prioEV.clear();
 	prioPower.clear();
-	int n=3;
-	for(int i=0; i<n;i++)
-	{
-		prioEV.push_back(i*111);
-		prioPower.push_back(i*11.5);
+	int n = 3;
+	for (int i = 0; i < n; i++) {
+		prioEV.push_back(i * 111);
+		prioPower.push_back(i * 11.5);
 	}
-	if (write_response())
-	{
-		std::cout<<response_message;
+	if (write_response()) {
+		std::cout << response_message;
 	}
 }
-void Event_Handler::write_no_solution(){
+void Event_Handler::write_no_solution() {
 	LOG(ERROR)<<"No solution signal set";
 	response_message = "no_solution";
 }

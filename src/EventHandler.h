@@ -125,7 +125,7 @@ private:
 	Input algo_input;
 	Parking parking;
 	// Status flags
-	bool config_got,hist_db_setup, message_got, error, no_solution,FIFO;
+	bool config_got,hist_db_setup, message_got, error, no_solution,FIFO, event_detected;
 	// Run-time control
 	double algorithm_timeout; // Seconds of algorithm time-out
 	// Saving EV priority to matrix

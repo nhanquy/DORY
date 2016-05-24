@@ -6,9 +6,11 @@
 #ifndef LIB_MATRIX_H_
 #define LIB_MATRIX_H_
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <vector>
 #include <math.h>
-
+#include "easylogging++.h"
 //#define DEBUG
 
 #ifdef DEBUG
@@ -90,7 +92,7 @@ vecT vec_sum(const vecT& vecA, const vecT& vecB) {
 	int size = vecA.size();
 	vecT vecsum(size, 0);
 	if (vecA.size() != vecB.size()) {
-		std::cout << "Vectors dimension do not match! \n";
+		LOG(DEBUG)<< "Vectors dimension do not match!";
 		return (vecsum);
 	}
 	for (int i = 0; i < size; ++i)
@@ -108,17 +110,26 @@ vecT sub_vector(const vecT& vecA, int start, int end) {
 		subvec[i] = vecA[start + i];
 	return (subvec);
 }
+// ---------------------------
+// Converting vector to string
+// ---------------------------
+template<typename vecT>
+std::string vec2string(vecT& my_vector){
+	std::stringstream ss;
+	for (unsigned int i = 0; i < my_vector.size(); ++i) {
+		ss<<my_vector[i]<<" ";
+	}
+	return ss.str();
+}
 // ----------------------------------
 // Display a vector with label string
 // ----------------------------------
 template<typename vecT>
 void disp_vector(const vecT& my_vector, std::string label = "") {
 	if (label != "")
-		std::cout << "\nVector: " << label << " \n";
-	for (unsigned int i = 0; i < my_vector.size(); ++i)
-		std::cout << my_vector[i] << " ";
-	if (label != "")
-		std::cout << "\n";
+		LOG(DEBUG)<< "Vector: " << label ;
+	//for (unsigned int i = 0; i < my_vector.size(); ++i)
+		LOG(DEBUG)<< vec2string(my_vector);
 }
 // ----------------------------------
 // Display a vector with label string
@@ -126,10 +137,9 @@ void disp_vector(const vecT& my_vector, std::string label = "") {
 template<typename matT>
 void disp_matrix(const matT& my_matrix, std::string label = "") {
 	if (label != "")
-		std::cout << "\nMatrix: " << label << " \n";
+		LOG(DEBUG)<< "Matrix: " << label ;
 	for (unsigned int i = 0; i < my_matrix.size(); ++i) {
 		disp_vector(my_matrix[i]);
-		std::cout << "\n";
 	}
 }
 // -----------------------------------------
@@ -173,5 +183,4 @@ void swapping(vecT& vecA, int i, int j) {
 	vecA[i] = vecA[j];
 	vecA[j] = temp;
 }
-// END OF ADDITIONAL FUNCTION DEFINITIONS
 #endif /* LIB_MATRIX_H_ */

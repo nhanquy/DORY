@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Algorithms_Box_1_0.cpp
 // Author      : Nhan-Quy NGUYEN
-// Version     :
+// Version     : 1.0
 // Copyright   : Copyright Park'n'Plug 2016
 // Description : Algorithms box 1.0 which helps to getting events from GO
 //				 and analyzing the request to create suitable input file for
@@ -25,18 +25,36 @@ INITIALIZE_EASYLOGGINGPP
 using namespace std;
 int main(int argc, char *argv[]) {
 	/*
-	 * argv = config_dir, config_id, db_dir, port_no
+	 * usage = config_dir, config_id, db_dir, port_no, log_file
 	 */
-	/*
-	 * Setting easylogging++
-	 */
-	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput,
-			"false");
-	// Config done!
+	if (argc < 5 || argc > 6) {
+		// wrong usage
+		exit(1);
+	}
 	const char* config_dir = argv[1];
 	const char* config_id = argv[2];
 	const char* db_dir = argv[3];
 	int port_no = atoi(argv[4]);
+	const char* log_dir;
+	if (argc == 6)
+		log_dir = argv[5];
+	else
+		log_dir = "logs/BA_LOG.log";
+	/*
+	 * Setting logging
+	 */
+	try { // In case file-name corrupted
+		el::Loggers::reconfigureAllLoggers(
+				el::ConfigurationType::ToStandardOutput, "false");
+		el::Configurations c;
+		c.setGlobally(el::ConfigurationType::Filename, log_dir);
+		c.parseFromText("*DEBUG:\n FILENAME = \"logs/BA_DEBUG.log\"");
+		el::Loggers::setDefaultConfigurations(c, true);
+	} catch (...) {
+		// Since logger isn't configured yet, it cannot be called to show the error.
+		// Exit error
+		exit(1);
+	}
 	// Add event
 	Event_Handler event;
 	event.read_config(config_dir, config_id);
@@ -74,11 +92,16 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					else { // Parsing successfully
+						// Open the historical database to prepare estimation data
+						// for Event Handler to acquire it later
 						event.open_hist_db();
-						event.getting_event(root);
+						// Getting the events from client's message
+						bool event_catched = event.getting_event(root);
+						// Close the event when done
 						event.close_hist_db();
 						// Find solution
-						event.find_solution();
+						if (event_catched) event.find_solution();
+						else event.MCR();
 						// Write message
 						event.write_response();
 					}
@@ -88,8 +111,7 @@ int main(int argc, char *argv[]) {
 					stream->send(event.get_message().c_str(),
 							event.get_message().size());
 				}
-			} else
-				// I stream->accept encounter error(s)
+			} else // If stream->accept encounter error(s)
 				error_count++;
 			// Error or not, closing steam after all
 			delete stream;
