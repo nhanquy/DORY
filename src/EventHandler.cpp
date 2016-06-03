@@ -245,6 +245,7 @@ bool Event_Handler::write_response() {
 		}
 		Json::StyledWriter writer;
 		response_message=writer.write(root);
+		LOG(DEBUG)<<"Response to client: "<<response_message;
 		return true;
 	}
 	catch(...) {

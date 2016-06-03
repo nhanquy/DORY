@@ -23,11 +23,15 @@
 #define ERROR_LIMIT 100
 INITIALIZE_EASYLOGGINGPP
 using namespace std;
-int main(int argc, char *argv[]) {
+int main(	int argc,
+			char *argv[])
+{
+	static const std::string BA_version_check = "BA 1.0.3, released 06-06-2016";
 	/*
 	 * usage = config_dir, config_id, db_dir, port_no, log_file
 	 */
-	if (argc < 5 || argc > 6) {
+	if (argc < 5 || argc > 6)
+	{
 		// wrong usage
 		exit(1);
 	}
@@ -43,14 +47,16 @@ int main(int argc, char *argv[]) {
 	/*
 	 * Setting logging
 	 */
-	try { // In case file-name corrupted
+	try
+	{ // In case file-name corrupted
 		el::Loggers::reconfigureAllLoggers(
 				el::ConfigurationType::ToStandardOutput, "false");
 		el::Configurations c;
 		c.setGlobally(el::ConfigurationType::Filename, log_dir);
 		c.parseFromText("*DEBUG:\n FILENAME = \"logs/BA_DEBUG.log\"");
 		el::Loggers::setDefaultConfigurations(c, true);
-	} catch (...) {
+	} catch (...)
+	{
 		// Since logger isn't configured yet, it cannot be called to show the error.
 		// Exit error
 		exit(1);
@@ -65,21 +71,27 @@ int main(int argc, char *argv[]) {
 	TCPStream* stream = NULL;
 	TCPAcceptor* acceptor = NULL;
 	acceptor = new TCPAcceptor(port_no);
-	if (acceptor->start() == 0) {
+	if (acceptor->start() == 0)
+	{
 		int error_count = 0;
-		while (error_count < ERROR_LIMIT) {
+		while (error_count < ERROR_LIMIT)
+		{
 			stream = acceptor->accept();
-			if (stream != NULL) {
+			if (stream != NULL)
+			{
 				ssize_t len;
 				char line[1024];
 				bool communicating = true;
-				while (communicating) {
+				while (communicating)
+				{
 					len = stream->receive(line, sizeof(line));
 					std::string str_line(line);
 					bool parsingSuccessful = reader.parse(line, root);
 					if (!parsingSuccessful)
+					{
 						// Shutdown case
-						if (str_line.find("shutdown") != std::string::npos) {
+						if (str_line.find("shutdown") != std::string::npos)
+						{
 							std::string shutdown_message =
 									"Server shutting down...";
 							stream->send(shutdown_message.c_str(),
@@ -90,38 +102,54 @@ int main(int argc, char *argv[]) {
 						}
 						// close_socket case
 						else if (str_line.find("close_socket")
-								!= std::string::npos) {
-							std::string shutdown_message = "Socket closing...";
-							stream->send(shutdown_message.c_str(),
-									shutdown_message.size());
+								!= std::string::npos)
+						{
+							std::string s_message = "Socket closing...";
+							stream->send(s_message.c_str(),
+									s_message.size());
 							LOG(INFO)<<"Socket closed";
 							communicating = false;
-						} else {
+						}
+						else if (str_line.find("version")
+								!= std::string::npos)
+						{
+							std::string s_message = BA_version_check;
+							stream->send(s_message.c_str(),
+									s_message.size());
+							LOG(INFO)<<"Version checked";
+							communicating = false;
+						}
+						else
+						{
 							// Report to the user the failure and their locations in the document.
 							LOG(ERROR)<< "Failed to parse input file: "<< reader.getFormattedErrorMessages();
 							event.MCR();
 						}
-					else { // Parsing successfully
-						   // Open the historical database to prepare estimation data
-						   // for Event Handler to acquire it later
+					}
+					else
+					{ // Parsing successfully
+					  // Open the historical database to prepare estimation data
+					  // for Event Handler to acquire it later
 						event.open_hist_db();
-						   // Getting the events from client's message
+					  // Getting the events from client's message
 						bool event_catched = event.getting_event(root);
-						   // Close the event when done
+					  // Close the event when done
 						event.close_hist_db();
-						   // Find solution
+					  // Find solution
 						if (event_catched) event.find_solution();
 						else event.MCR();
-						   // Write message
+					  // Write message
 						event.write_response();
 					}
 					//Send response
 					line[len] = 0;
 					LOG(INFO)<<"Server received: "<<line;
-					if (communicating)stream->send(event.get_message().c_str(),
-							event.get_message().size());
+					if (communicating)
+						stream->send(event.get_message().c_str(),
+								event.get_message().size());
 				}						   // End while
-			} else
+			}
+			else
 				// If stream->accept encounter error(s)
 				error_count++;
 			// Error or not, closing steam after all

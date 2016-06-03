@@ -124,7 +124,9 @@ int TimeRef::timestr_to_block(timestr set_time) const {
 }
 
 // Getting time
-
+double TimeRef::get_block_duration() const{
+	return block_duration;
+}
 timestr TimeRef::time_now() const {
 	int seconds_last = 99;
 	char TimeString[128];

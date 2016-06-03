@@ -204,10 +204,10 @@ void Parking::export_ACPF_input(Input &ACPF_input) {
 			// Fixing time-windows so the scheduled charge will be untouched by ACPF
 			double m_departure = ref_now + energy_left / u[i];
 			departure[i] = QTime.double_to_block(m_departure);
-			workload[i] = energy_left;
+			workload[i] = energy_left/ACPF_Time.get_block_duration();
 		} else {
 			departure[i] = QTime.double_to_block(fleet[i].get_exp_departure());
-			workload[i] = fleet[i].get_est_demand();
+			workload[i] = fleet[i].get_est_demand()/ACPF_Time.get_block_duration();
 		}
 		// Fixing arrival to start of horizon
 		// No-wait model applied, only schedule EV already parked

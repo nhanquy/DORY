@@ -47,6 +47,7 @@ public:
 	double hours_now() const; 			// Number of hours passed since the starting of scheduling horizon k=0
 	int block_now() const; 				// Number of block passed since the starting time k=0
 	timestr time_now()  const;		  	// Getting actual system time
+	double get_block_duration() const;	// Get block duration
 	// Display
 	void print_time_now();
 	// setting time
