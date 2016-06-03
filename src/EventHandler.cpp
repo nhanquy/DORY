@@ -45,6 +45,7 @@ void Event_Handler::read_config(const char* config_file,
 	double delta_t = root["Block_duration"].asDouble();
 	LOG(DEBUG)<<"Block duration read: "<<delta_t;
 	FIFO = root["FIFO"].asBool();
+	LOG(DEBUG)<<"FIFO read: "<<FIFO;
 	// BA general configurations
 	algorithm_timeout = root["BA_timeout"].asDouble();
 	LOG(DEBUG)<<"BA Timeout read: "<<algorithm_timeout;
@@ -86,8 +87,9 @@ void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
 	double hours_dep = Event_Time.timestr_to_block(exp_departure);
 	// If the departure time exceeds the ending horizon,
 	// so the departure time will set to ending horizon to standardize ACPF input.
-	if (hours_dep > Event_Time.hours_end())
+	if (hours_dep > Event_Time.hours_end()|| hours_dep==0) // In case EV depart after the scheduling ended or exact 24h ahead
 		hours_dep = Event_Time.hours_end();
+	// TODO: Becareful here!!
 	double hours_arr = Event_Time.hours_now();
 	parking.add_EV(user_id, borne_id, hours_arr, hours_dep, est_demand,
 			charging_power);

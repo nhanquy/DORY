@@ -26,7 +26,7 @@ using namespace std;
 int main(	int argc,
 			char *argv[])
 {
-	static const std::string BA_version_check = "BA 1.0.3, released 06-06-2016";
+	static const std::string BA_version_check = "BA 1.0.3, last build 14:18:00 06-06-2016";
 	/*
 	 * usage = config_dir, config_id, db_dir, port_no, log_file
 	 */
@@ -35,6 +35,7 @@ int main(	int argc,
 		// wrong usage
 		exit(1);
 	}
+	bool version_check;
 	const char* config_dir = argv[1];
 	const char* config_id = argv[2];
 	const char* db_dir = argv[3];
@@ -84,6 +85,7 @@ int main(	int argc,
 				bool communicating = true;
 				while (communicating)
 				{
+					version_check=false;
 					len = stream->receive(line, sizeof(line));
 					std::string str_line(line);
 					bool parsingSuccessful = reader.parse(line, root);
@@ -117,7 +119,7 @@ int main(	int argc,
 							stream->send(s_message.c_str(),
 									s_message.size());
 							LOG(INFO)<<"Version checked";
-							communicating = false;
+							version_check=true;
 						}
 						else
 						{
@@ -144,10 +146,10 @@ int main(	int argc,
 					//Send response
 					line[len] = 0;
 					LOG(INFO)<<"Server received: "<<line;
-					if (communicating)
+					if (communicating && !version_check)
 						stream->send(event.get_message().c_str(),
 								event.get_message().size());
-				}						   // End while
+				}	// End while communicating
 			}
 			else
 				// If stream->accept encounter error(s)
