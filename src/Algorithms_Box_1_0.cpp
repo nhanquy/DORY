@@ -8,8 +8,8 @@
 //				 the chosen algorithm
 //============================================================================
 
-#include <iostream>
-#include <stdio.h>
+//#include <iostream>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,7 +26,7 @@ using namespace std;
 int main(	int argc,
 			char *argv[])
 {
-	static const std::string BA_version_check = "BA 1.0.3, last build 14:18:00 06-06-2016";
+	static const std::string BA_version_check = "BA 1.0.3, last build 09:24:00 07-06-2016";
 	/*
 	 * usage = config_dir, config_id, db_dir, port_no, log_file
 	 */
@@ -40,11 +40,11 @@ int main(	int argc,
 	const char* config_id = argv[2];
 	const char* db_dir = argv[3];
 	int port_no = atoi(argv[4]);
-	const char* log_dir;
+	std::string log_dir;
 	if (argc == 6)
 		log_dir = argv[5];
 	else
-		log_dir = "logs/BA_LOG.log";
+		log_dir = "logs";
 	/*
 	 * Setting logging
 	 */
@@ -53,8 +53,10 @@ int main(	int argc,
 		el::Loggers::reconfigureAllLoggers(
 				el::ConfigurationType::ToStandardOutput, "false");
 		el::Configurations c;
-		c.setGlobally(el::ConfigurationType::Filename, log_dir);
-		c.parseFromText("*DEBUG:\n FILENAME = \"logs/BA_DEBUG.log\"");
+		string log_file = log_dir+"/ba_log";
+		string deb_file = log_dir+"/ba_deb";
+		c.setGlobally(el::ConfigurationType::Filename, log_file);
+		c.parseFromText("*DEBUG:\n FILENAME = "+deb_file);
 		el::Loggers::setDefaultConfigurations(c, true);
 	} catch (...)
 	{

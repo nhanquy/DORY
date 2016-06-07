@@ -93,6 +93,13 @@ int Parking::search_by_ID(int user_id) const {
 	return -1;
 }
 
+int Parking::search_borne_ID(int user_id) const{
+	int ind_ev = search_by_ID(user_id);
+	if (ind_ev>=0)
+		return fleet[ind_ev].get_borne_id();
+	else
+		return -1;
+}
 // EVENTS DEFINITIONS
 
 void Parking::end_of_charge(int user_id) {

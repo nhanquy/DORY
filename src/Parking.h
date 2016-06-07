@@ -33,6 +33,7 @@ public:
 	void remove_EV(int m_user_id);
 	// Searching tools
 	int search_by_ID(int m_user_id) const; // Return -1 if EV doesn't exist
+	int search_borne_ID(int m_user_id) const; // Return -1 if EV doesn't exist
 protected:
 	// Can only access by event handler
 	void end_of_charge(int user_id);															// FDC
