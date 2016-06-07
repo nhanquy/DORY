@@ -19,7 +19,8 @@
 #include "Parking.h"
 #include "libs/easylogging++.h"
 
-class Event_Handler {
+class Event_Handler
+{
 public:
 
 #define config_control if(!config_got) return;
@@ -32,7 +33,11 @@ public:
 	 * algorithm_timeout = 20 sec
 	 */
 	// Object configuration
-	void read_config(const char* config_file, const char* config_id);
+	void read_config(	const char* config_file,
+						const char* config_id,
+						std::string& db_dir,
+						std::string& log_dir,
+						int& port_no);
 	/*
 	 * Reading configuration file
 	 * Format: JSON
@@ -73,11 +78,15 @@ public:
 	void open_hist_db();
 	void close_hist_db();
 	// Set of EVENTs
-	void AUT(int user_id, int borne_id,double charging_power);
+	void AUT(	int user_id,
+				int borne_id,
+				double charging_power);
 	void FDC(int user_id);
 	void ANU(int user_id);
-	void DCF(int user_id, double charging_power);
-	void PID(int user_id, double charging_power);
+	void DCF(	int user_id,
+				double charging_power);
+	void PID(	int user_id,
+				double charging_power);
 	void CNU(int user_id);
 	void MCR();
 	/*
@@ -125,7 +134,8 @@ private:
 	Input algo_input;
 	Parking parking;
 	// Status flags
-	bool config_got,hist_db_setup, message_got, error, no_solution,FIFO, event_detected;
+	bool config_got, hist_db_setup, message_got, error, no_solution, FIFO,
+			event_detected;
 	// Run-time control
 	double algorithm_timeout; // Seconds of algorithm time-out
 	// Saving EV priority to matrix

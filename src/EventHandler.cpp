@@ -8,34 +8,75 @@
 #include "EventHandler.h"
 
 Event_Handler::Event_Handler() :
-		config_got(false), hist_db_setup(false), message_got(false), error(
-				false), no_solution(true), FIFO(true), event_detected(false), algorithm_timeout(
-				20) {
+		config_got(false),
+		hist_db_setup(false),
+		message_got(false),
+		error(false),
+		no_solution(true),
+		FIFO(true),
+		event_detected(false),
+		algorithm_timeout(20)
+{
 }
 
 /*
  * OBJECT CONFIGURATIONS
  */
 
-void Event_Handler::read_config(const char* config_file,
-		const char* config_id) {
+void Event_Handler::read_config(	const char* config_file,
+            						const char* config_id,
+            						std::string& db_dir,
+            						std::string& log_dir,
+            						int& port_no)
+{
 	std::ifstream jsonDoc(config_file, std::ifstream::binary);
-	if (!jsonDoc.is_open()) {
+	if (!jsonDoc.is_open())
+	{
 		LOG(ERROR)<< "Unable to open file" << config_file;
 		return;
 	}
 	Json::Value root;   // will contains the root value after parsing.
 	Json::Reader reader;
-	LOG(DEBUG)<<"Begin to configure Parking";
 	bool parsingSuccessful = reader.parse(jsonDoc, root);
-	if (!parsingSuccessful) {
+	if (!parsingSuccessful)
+	{
 		// report to the user the failure and their locations in the document.
 		LOG(ERROR)<< "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
-		return;
+		exit(-1);
+	}
+	// BA Parameters read
+	Json::Value ba_params = root["BA_PARAMS"];
+	log_dir = ba_params["LOGSDIR"].asString();
+	//LOG(DEBUG)<<"LOGSDIRS read: "<<log_dir;
+	db_dir = ba_params["DB_FILE"].asString();
+	//LOG(DEBUG)<<"DB_FILE read: "<<db_dir;
+	port_no = ba_params["PORT"].asInt();
+	//LOG(DEBUG)<<"PORT read: "<<port_no;
+	if (log_dir.size() == 0)
+		log_dir = "logs";
+	/*
+	 * Setting logging
+	 */
+	try
+	{ // In case file-name corrupted
+		el::Loggers::reconfigureAllLoggers(
+				el::ConfigurationType::ToStandardOutput, "false");
+		el::Configurations c;
+		string log_file = log_dir+"/ba_log";
+		string deb_file = log_dir+"/ba_deb";
+		c.setGlobally(el::ConfigurationType::Filename, log_file);
+		c.parseFromText("*DEBUG:\n FILENAME = "+deb_file);
+		el::Loggers::setDefaultConfigurations(c, true);
+	} catch (...)
+	{
+		// Since logger isn't configured yet, it cannot be called to show the error.
+		// Exit error
+		exit(1);
 	}
 	// Re-map root
 	root = root[config_id];
 	// Get number of jobs
+	LOG(DEBUG)<<"Begin to configure Parking";
 	timestr start_time = root["Start_time"].asString();
 	LOG(DEBUG)<<"Start time read: "<<start_time;
 	timestr end_time = root["End_time"].asString();
@@ -58,28 +99,35 @@ void Event_Handler::read_config(const char* config_file,
 	config_got = true;
 }
 
-void Event_Handler::setup_db_handler(const char* db_dir) {
+void Event_Handler::setup_db_handler(const char* db_dir)
+{
 	hist_db.set_db_dir(db_dir);
 }
 
 // Database tools
 
-double Event_Handler::load_demand_estimation(int user_id) {
+double Event_Handler::load_demand_estimation(int user_id)
+{
 	bool existed;
 	return (hist_db.get_est_demand(user_id, existed));
 }
 
-void Event_Handler::open_hist_db() {
+void Event_Handler::open_hist_db()
+{
 	hist_db.open_db();
 }
 
-void Event_Handler::close_hist_db() {
+void Event_Handler::close_hist_db()
+{
 	hist_db.close_db();
 }
 
 // Event definition
 
-void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
+void Event_Handler::AUT(int user_id,
+						int borne_id,
+						double charging_power)
+{
 	bool existed;
 	LOG(DEBUG)<<"AUT event being read...";
 	double est_demand = hist_db.get_est_demand(user_id, existed);
@@ -87,7 +135,7 @@ void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
 	double hours_dep = Event_Time.timestr_to_block(exp_departure);
 	// If the departure time exceeds the ending horizon,
 	// so the departure time will set to ending horizon to standardize ACPF input.
-	if (hours_dep > Event_Time.hours_end()|| hours_dep==0) // In case EV depart after the scheduling ended or exact 24h ahead
+	if (hours_dep > Event_Time.hours_end() || hours_dep == 0) // In case EV depart after the scheduling ended or exact 24h ahead
 		hours_dep = Event_Time.hours_end();
 	// TODO: Becareful here!!
 	double hours_arr = Event_Time.hours_now();
@@ -96,27 +144,35 @@ void Event_Handler::AUT(int user_id, int borne_id, double charging_power) {
 	event_detected = true;
 }
 
-void Event_Handler::FDC(int user_id) {
+void Event_Handler::FDC(int user_id)
+{
 	parking.end_of_charge(user_id);
 	event_detected = true;
 }
-void Event_Handler::ANU(int user_id) {
+void Event_Handler::ANU(int user_id)
+{
 	parking.charge_cancelling(user_id);
 	event_detected = true;
 }
-void Event_Handler::DCF(int user_id, double charging_power) {
+void Event_Handler::DCF(int user_id,
+						double charging_power)
+{
 	parking.forced_charge(user_id, charging_power);
 	event_detected = true;
 }
-void Event_Handler::PID(int user_id, double charging_power) {
+void Event_Handler::PID(int user_id,
+						double charging_power)
+{
 	parking.changing_power(user_id, charging_power);
 	event_detected = true;
 }
-void Event_Handler::CNU(int user_id) {
+void Event_Handler::CNU(int user_id)
+{
 	parking.no_charge(user_id);
 	event_detected = true;
 }
-void Event_Handler::MCR() {
+void Event_Handler::MCR()
+{
 	message_got = false;
 	response_message = "Message corrupted!";
 	event_detected = true;
@@ -125,74 +181,93 @@ void Event_Handler::MCR() {
 /*
  * Getting json_input events
  */
-bool Event_Handler::getting_event(const Json::Value& root) {
+bool Event_Handler::getting_event(const Json::Value& root)
+{
 	// AUT: Authentification
 	event_detected = false;
 	const Json::Value root_AUT = root["AUT"];
-	for (unsigned int index = 0; index < root_AUT.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_AUT.size(); index++)
+	{
+		try
+		{
 			int user_id = root_AUT[index]["user_id"].asInt();
 			int borne_id = root_AUT[index]["borne_id"].asInt();
 			double charging_power =
 					root_AUT[index]["charging_power"].asDouble();
 			AUT(user_id, borne_id, charging_power);
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
 	}
 	// FDC: Fin de Charge
 	const Json::Value root_FDC = root["FDC"];
-	for (unsigned int index = 0; index < root_FDC.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_FDC.size(); index++)
+	{
+		try
+		{
 			FDC(root_FDC[index]["user_id"].asInt());
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
 	}
 	// ANU: Anulation de Charge
 	const Json::Value root_ANU = root["ANU"];
-	for (unsigned int index = 0; index < root_ANU.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_ANU.size(); index++)
+	{
+		try
+		{
 			ANU(root_ANU[index]["user_id"].asInt());
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
 	}
 	// DCF: Depart de la Charge Forcee
 	const Json::Value root_DCF = root["DCF"];
-	for (unsigned int index = 0; index < root_DCF.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_DCF.size(); index++)
+	{
+		try
+		{
 			int user_id = root_DCF[index]["user_id"].asInt();
 			double charging_power =
 					root_DCF[index]["charging_power"].asDouble();
 			DCF(user_id, charging_power);
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
 	}
 	// PID: Puissance neccesaire inferieure a consigne
 	const Json::Value root_PID = root["PID"];
-	for (unsigned int index = 0; index < root_PID.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_PID.size(); index++)
+	{
+		try
+		{
 			int user_id = root_PID[index]["user_id"].asInt();
 			double charging_power =
 					root_PID[index]["charging_power"].asDouble();
 			PID(user_id, charging_power);
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
 	}
 	// CNU: Charge null
 	const Json::Value root_CNU = root["CNU"];
-	for (unsigned int index = 0; index < root_CNU.size(); index++) {
-		try {
+	for (unsigned int index = 0; index < root_CNU.size(); index++)
+	{
+		try
+		{
 			CNU(root_CNU[index]["user_id"].asInt());
-		} catch (...) {
+		} catch (...)
+		{
 			MCR();
 			return false;
 		}
@@ -207,8 +282,10 @@ bool Event_Handler::getting_event(const Json::Value& root) {
  *  2. ACPF get the input to solve for solution
  *  3. Solution analyzer is used to sort EVs queue
  */
-bool Event_Handler::find_solution() {
-	if (FIFO) {
+bool Event_Handler::find_solution()
+{
+	if (FIFO)
+	{
 		LOG(INFO)<<"FIFO configuration, no need to find BA Solution.";
 		return false;
 	}
@@ -218,7 +295,8 @@ bool Event_Handler::find_solution() {
 	Input ACPF_input;
 	parking.export_ACPF_input(ACPF_input);
 	algorithm.solve(ACPF_input);
-	if(algorithm.isFeasible()) {
+	if(algorithm.isFeasible())
+	{
 		// Exporting result
 		algorithm.priority(prioEV,prioPower,ACPF_input);
 		LOG(INFO)<<"Solution found.";
@@ -231,13 +309,16 @@ bool Event_Handler::find_solution() {
 	return false;
 }
 
-bool Event_Handler::write_response() {
-	if (prioEV.size() == 0 || prioPower.size() == 0 || no_solution) {
+bool Event_Handler::write_response()
+{
+	if (prioEV.size() == 0 || prioPower.size() == 0 || no_solution)
+	{
 		LOG(ERROR)<<"No EV priority is set.";
 		write_no_solution();
 		return false;
 	}
-	try {
+	try
+	{
 		Json::Value root;
 		root.clear();
 		for(unsigned int index = 0; index<prioEV.size(); index++)
@@ -251,30 +332,36 @@ bool Event_Handler::write_response() {
 		LOG(DEBUG)<<"Response to client: "<<response_message;
 		return true;
 	}
-	catch(...) {
+	catch(...)
+	{
 		LOG(ERROR)<<"Cannot write solution to JSON msg.";
 		write_no_solution();
 		return false;
 	}
 }
 
-std::string Event_Handler::get_message() const {
+std::string Event_Handler::get_message() const
+{
 	return response_message;
 }
 
-void Event_Handler::testing_JSON_inout() {
+void Event_Handler::testing_JSON_inout()
+{
 	prioEV.clear();
 	prioPower.clear();
 	int n = 3;
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++)
+	{
 		prioEV.push_back(i * 111);
 		prioPower.push_back(i * 11.5);
 	}
-	if (write_response()) {
+	if (write_response())
+	{
 		std::cout << response_message;
 	}
 }
-void Event_Handler::write_no_solution() {
+void Event_Handler::write_no_solution()
+{
 	LOG(ERROR)<<"No solution signal set";
 	response_message = "no_solution";
 }

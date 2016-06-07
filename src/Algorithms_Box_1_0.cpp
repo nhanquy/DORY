@@ -30,7 +30,7 @@ int main(	int argc,
 	/*
 	 * usage = config_dir, config_id, db_dir, port_no, log_file
 	 */
-	if (argc < 5 || argc > 6)
+	if (argc != 3)
 	{
 		// wrong usage
 		exit(1);
@@ -38,36 +38,12 @@ int main(	int argc,
 	bool version_check;
 	const char* config_dir = argv[1];
 	const char* config_id = argv[2];
-	const char* db_dir = argv[3];
-	int port_no = atoi(argv[4]);
-	std::string log_dir;
-	if (argc == 6)
-		log_dir = argv[5];
-	else
-		log_dir = "logs";
-	/*
-	 * Setting logging
-	 */
-	try
-	{ // In case file-name corrupted
-		el::Loggers::reconfigureAllLoggers(
-				el::ConfigurationType::ToStandardOutput, "false");
-		el::Configurations c;
-		string log_file = log_dir+"/ba_log";
-		string deb_file = log_dir+"/ba_deb";
-		c.setGlobally(el::ConfigurationType::Filename, log_file);
-		c.parseFromText("*DEBUG:\n FILENAME = "+deb_file);
-		el::Loggers::setDefaultConfigurations(c, true);
-	} catch (...)
-	{
-		// Since logger isn't configured yet, it cannot be called to show the error.
-		// Exit error
-		exit(1);
-	}
-	// Add event
+	string db_dir,log_dir;
+	int port_no;
 	Event_Handler event;
-	event.read_config(config_dir, config_id);
-	event.setup_db_handler(db_dir);
+	event.read_config(config_dir, config_id,db_dir, log_dir, port_no);
+	// Add event
+	event.setup_db_handler(db_dir.c_str());
 	Json::Value root;
 	Json::Reader reader;
 	// Configuring server

@@ -1,10 +1,16 @@
 {
+ "BA_PARAMS":
+	{
+		"LOGSDIR"	:	"ba_logs",
+		"DB_FILE"	:	"hist_db",
+		"PORT"		:	10004
+	},
  "Morning_Config":
  	{
 	  	"Start_time"	:	"07:00:00",
 	  	"End_time"	:	"12:00:00",
 	  	"Block_duration":	0.25,
-	  	"FIFO"		:	1,
+	  	"FIFO"		:	0,
 		"BA_timeout"	:	20,
 		"Bandwidth"	:	200
  	},
