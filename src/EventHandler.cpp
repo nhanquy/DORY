@@ -9,7 +9,7 @@
 
 Event_Handler::Event_Handler() :
 		config_got(false),
-		hist_db_setup(false),
+		estimation_json_setup(false),
 		message_got(false),
 		error(false),
 		no_solution(true),
@@ -22,7 +22,6 @@ Event_Handler::Event_Handler() :
 /*
  * OBJECT CONFIGURATIONS
  */
-
 std::string Event_Handler::read_config(const char* config_id)
 {
 	config_got = false;
@@ -45,7 +44,7 @@ std::string Event_Handler::read_config(const char* config_id)
 	// Re-map root
 	root = root[config_id];
 	if (root.isNull())
-			return "Configuration id not existed.";
+		return "Configuration id not existed.";
 	// Get number of jobs
 	LOG(DEBUG)<<"Begin to configure Parking";
 	timestr start_time = root["Start_time"].asString();
@@ -72,29 +71,52 @@ std::string Event_Handler::read_config(const char* config_id)
 	return "Configuration loading done";
 }
 
-void Event_Handler::setup_db_handler(const char* db_dir)
+void Event_Handler::setup_estimation_JSON(const char* JSON_file)
 {
-	hist_db.set_db_dir(db_dir);
+	estimation_json_setup = false;
+	std::ifstream jsonDoc(JSON_file, std::ifstream::binary);
+	if (!jsonDoc.is_open())
+	{
+		LOG(ERROR)<< "Unable to open estimation file" << JSON_file;
+		return;
+	}
+	Json::Reader reader;
+	bool parsingSuccessful = reader.parse(jsonDoc, m_estimation);
+	if (!parsingSuccessful)
+	{
+		// report to the user the failure and their locations in the document.
+		LOG(ERROR)<< "Failed to parse estimation file"<< reader.getFormattedErrorMessages();
+		return;
+	}
+	if (m_estimation.isNull())
+	{
+		LOG(ERROR)<< "Failed to load estimation data";
+		return;
+	}
+	estimation_json_setup = true;
+	LOG(INFO)<<"Estimation data loaded sucessfully";
 }
 
 // Database tools
-
-double Event_Handler::load_demand_estimation(int user_id)
+int  Event_Handler::find_user_index(int user_id) const
 {
-	bool existed;
-	return (hist_db.get_est_demand(user_id, existed));
+	for (int index=0;index<m_estimation.size();index++)
+	{
+		if (m_estimation[index]["user_id"].asInt() == user_id)
+			return index;
+	}
+	return 0;
 }
-
-void Event_Handler::open_hist_db()
+//
+double Event_Handler::load_demand_estimation(int index) const
 {
-	hist_db.open_db();
+	return m_estimation[index]["demand"].asDouble();
 }
-
-void Event_Handler::close_hist_db()
+//
+timestr Event_Handler::load_exp_depature(int index) const
 {
-	hist_db.close_db();
+	return m_estimation[index]["departure"].asString();
 }
-
 // Event definition
 void Event_Handler::CONFIG_LOAD(std::string command_line)
 {
@@ -113,8 +135,9 @@ void Event_Handler::AUT(int user_id,
 {
 	bool existed;
 	LOG(DEBUG)<<"AUT event being read...";
-	double est_demand = hist_db.get_est_demand(user_id, existed);
-	timestr exp_departure = hist_db.get_exp_depature(user_id, existed);
+	int est_index = find_user_index(user_id);
+	double est_demand = load_demand_estimation(est_index);
+	timestr exp_departure = load_exp_depature(est_index);
 	double hours_dep = Event_Time.timestr_to_block(exp_departure);
 	// If the departure time exceeds the ending horizon,
 	// so the departure time will set to ending horizon to standardize ACPF input.

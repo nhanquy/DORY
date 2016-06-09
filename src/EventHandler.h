@@ -11,7 +11,6 @@
 #define EVENTHANDLER_H_
 #include <string>
 #include "libs/matrix.h"
-#include "libs/DBHandler.h"
 #include "libs/QTimer.h"
 #include "TimeRef.h"
 #include "heuristics/Input.h"
@@ -74,15 +73,10 @@ public:
 			response_message = "not_configured";
 		return config_got;
 	}
-	void setup_db_handler(const char* db_dir);
-	/*
-	 * Configuration of hist_db
-	 * Setting up db_dir, Setting status flag
-	 */
-	double load_demand_estimation(int user_id);
-	timestr load_exp_depature(int user_id);
-	void open_hist_db();
-	void close_hist_db();
+	void setup_estimation_JSON(const char* JSON_file);
+	int find_user_index(int user_id) const;
+	double load_demand_estimation(int index) const;
+	timestr load_exp_depature(int index) const;
 	// Set of EVENTs
 	void CONFIG_LOAD( std::string command_line);
 	void AUT(	int user_id,
@@ -136,12 +130,12 @@ public:
 	void testing_JSON_inout();
 private:
 	TimeRef Event_Time;
-	DB_Handler hist_db;
+	Json::Value m_estimation;
 	ConstructiveHeuristic algorithm;
 	Input algo_input;
 	Parking parking;
 	// Status flags
-	bool config_got, hist_db_setup, message_got, error, no_solution, FIFO,
+	bool config_got, estimation_json_setup, message_got, error, no_solution, FIFO,
 			event_detected;
 	// Run-time control
 	double algorithm_timeout; // Seconds of algorithm time-out

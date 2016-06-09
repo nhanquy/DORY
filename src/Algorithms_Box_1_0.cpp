@@ -25,7 +25,7 @@ INITIALIZE_EASYLOGGINGPP
 
 using namespace std;\
 void read_params(const char* config_file,
-				 std::string& db_dir,
+				 std::string& est_json_dir,
             	 std::string& log_dir,
             	 int& port_no)
 {
@@ -48,7 +48,7 @@ void read_params(const char* config_file,
 	Json::Value ba_params = root["BA_PARAMS"];
 	log_dir = ba_params["LOGSDIR"].asString();
 	//LOG(DEBUG)<<"LOGSDIRS read: "<<log_dir;
-	db_dir = ba_params["DB_FILE"].asString();
+	est_json_dir = ba_params["DB_FILE"].asString();
 	//LOG(DEBUG)<<"DB_FILE read: "<<db_dir;
 	port_no = ba_params["PORT"].asInt();
 	//LOG(DEBUG)<<"PORT read: "<<port_no;
@@ -91,14 +91,14 @@ int main(	int argc,
 	}
 	bool version_check;
 	const char* config_dir = argv[1];
-	string db_dir,log_dir;
+	string est_json_dir,log_dir;
 	int port_no;
-	read_params(config_dir, db_dir, log_dir, port_no);
+	read_params(config_dir, est_json_dir, log_dir, port_no);
 	// -------------------
 	// SETUP EVENT HANDLER
 	// -------------------
 	Event_Handler event;
-	event.setup_db_handler(db_dir.c_str());
+	event.setup_estimation_JSON(est_json_dir.c_str());
 	event.read_config_dir(config_dir);
 	// -----------------
 	// PREPARING SERVER
@@ -183,13 +183,8 @@ int main(	int argc,
 					}
 					else if(event.isConfigured())
 					{ // Parsing successfully
-					  // Open the historical database to prepare estimation data
-					  // for Event Handler to acquire it later
-						event.open_hist_db();
 					  // Getting the events from client's message
 						bool event_catched = event.getting_event(root);
-					  // Close the event when done
-						event.close_hist_db();
 					  // Find solution
 						if (event_catched) event.find_solution();
 						else event.MCR();

@@ -2,7 +2,7 @@
  "BA_PARAMS":
 	{
 		"LOGSDIR"	:	"ba_logs",
-		"DB_FILE"	:	"hist_db",
+		"DB_FILE"	:	"ba_estimation.json",
 		"PORT"		:	10004
 	},
  "Morning_Config":
