@@ -18,6 +18,7 @@
 #include "heuristics/ConstructiveHeuristic.h"
 #include "Parking.h"
 #include "libs/easylogging++.h"
+//#include <iostream>
 
 class Event_Handler
 {
@@ -33,11 +34,7 @@ public:
 	 * algorithm_timeout = 20 sec
 	 */
 	// Object configuration
-	void read_config(	const char* config_file,
-						const char* config_id,
-						std::string& db_dir,
-						std::string& log_dir,
-						int& port_no);
+	std::string read_config(const char* config_id);
 	/*
 	 * Reading configuration file
 	 * Format: JSON
@@ -68,6 +65,15 @@ public:
 	 * 		+ FIFO					: Boolean, true whether the FIFO schedule is applied during this period
 	 * 		+ BA_Timeout			: Time out of executing AlgoBox, in seconds
 	 */
+	void read_config_dir(const char* config_dir)
+	{
+		config_file = config_dir;
+	}
+	bool isConfigured(){
+		if (!config_got)
+			response_message = "not_configured";
+		return config_got;
+	}
 	void setup_db_handler(const char* db_dir);
 	/*
 	 * Configuration of hist_db
@@ -78,6 +84,7 @@ public:
 	void open_hist_db();
 	void close_hist_db();
 	// Set of EVENTs
+	void CONFIG_LOAD( std::string command_line);
 	void AUT(	int user_id,
 				int borne_id,
 				double charging_power);
@@ -143,6 +150,7 @@ private:
 	numVec prioPower;
 	QTimer timer;
 	std::string response_message;
+	std::string config_file;
 };
 
 #endif /* EVENTHANDLER_H_ */

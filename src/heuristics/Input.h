@@ -9,9 +9,6 @@
 #ifndef INPUT_H_
 #define INPUT_H_
 //
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <string>
 //
 #include "../libs/json/json.h"

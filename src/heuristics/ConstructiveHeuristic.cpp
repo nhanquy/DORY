@@ -102,8 +102,8 @@ void ConstructiveHeuristic::priority(intVec& list_EV, numVec& list_Power, const 
 		list_Arrival.push_back(start_time[i]);
 	}
 	// Bubble simple sort for the priority of EV
-	for (int i=0;i<nTasks;++i)
-		for(int j=i;j<nTasks;j++)
+	for (unsigned int i=0;i<nTasks;++i)
+		for(unsigned int j=i;j<nTasks;j++)
 			if (dominance(list_Arrival[j], list_Arrival[i],list_Power[j], list_Power[i]))
 			{
 				swapping<QInt,intVec>(list_Arrival,i,j);

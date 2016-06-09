@@ -15,6 +15,7 @@
 //
 #ifndef EASYLOGGINGPP_H
 #define EASYLOGGINGPP_H
+#define ELPP_NO_DEFAULT_LOG_FILE
 // Compilers and C++0x/C++11 Evaluation
 #if defined(__GNUC__)
 #   define ELPP_COMPILER_GCC 1

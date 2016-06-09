@@ -23,17 +23,15 @@ Event_Handler::Event_Handler() :
  * OBJECT CONFIGURATIONS
  */
 
-void Event_Handler::read_config(	const char* config_file,
-            						const char* config_id,
-            						std::string& db_dir,
-            						std::string& log_dir,
-            						int& port_no)
+std::string Event_Handler::read_config(const char* config_id)
 {
+	config_got = false;
+	message_got = false;
 	std::ifstream jsonDoc(config_file, std::ifstream::binary);
 	if (!jsonDoc.is_open())
 	{
 		LOG(ERROR)<< "Unable to open file" << config_file;
-		return;
+		return "Unable to open configuration file";
 	}
 	Json::Value root;   // will contains the root value after parsing.
 	Json::Reader reader;
@@ -42,39 +40,12 @@ void Event_Handler::read_config(	const char* config_file,
 	{
 		// report to the user the failure and their locations in the document.
 		LOG(ERROR)<< "Failed to parse input file\n"<< reader.getFormattedErrorMessages();
-		exit(-1);
-	}
-	// BA Parameters read
-	Json::Value ba_params = root["BA_PARAMS"];
-	log_dir = ba_params["LOGSDIR"].asString();
-	//LOG(DEBUG)<<"LOGSDIRS read: "<<log_dir;
-	db_dir = ba_params["DB_FILE"].asString();
-	//LOG(DEBUG)<<"DB_FILE read: "<<db_dir;
-	port_no = ba_params["PORT"].asInt();
-	//LOG(DEBUG)<<"PORT read: "<<port_no;
-	if (log_dir.size() == 0)
-		log_dir = "logs";
-	/*
-	 * Setting logging
-	 */
-	try
-	{ // In case file-name corrupted
-		el::Loggers::reconfigureAllLoggers(
-				el::ConfigurationType::ToStandardOutput, "false");
-		el::Configurations c;
-		string log_file = log_dir+"/ba_log";
-		string deb_file = log_dir+"/ba_deb";
-		c.setGlobally(el::ConfigurationType::Filename, log_file);
-		c.parseFromText("*DEBUG:\n FILENAME = "+deb_file);
-		el::Loggers::setDefaultConfigurations(c, true);
-	} catch (...)
-	{
-		// Since logger isn't configured yet, it cannot be called to show the error.
-		// Exit error
-		exit(1);
+		return "Configuration file parsing failed.";
 	}
 	// Re-map root
 	root = root[config_id];
+	if (root.isNull())
+			return "Configuration id not existed.";
 	// Get number of jobs
 	LOG(DEBUG)<<"Begin to configure Parking";
 	timestr start_time = root["Start_time"].asString();
@@ -97,6 +68,8 @@ void Event_Handler::read_config(	const char* config_file,
 	parking.set_bandwidth(set_bw);
 	parking.set_fifo(FIFO);
 	config_got = true;
+	message_got = true;
+	return "Configuration loading done";
 }
 
 void Event_Handler::setup_db_handler(const char* db_dir)
@@ -123,7 +96,17 @@ void Event_Handler::close_hist_db()
 }
 
 // Event definition
-
+void Event_Handler::CONFIG_LOAD(std::string command_line)
+{
+	std::istringstream iss(command_line);
+	std::string config_id;
+	std::string config_command;
+	iss >> config_command >> config_id;
+	LOG(DEBUG)<<"Command line: "<<command_line;
+	LOG(DEBUG)<<"Configuration id parsed: "<<config_id;
+	response_message = read_config(config_id.c_str());
+	event_detected = true;
+}
 void Event_Handler::AUT(int user_id,
 						int borne_id,
 						double charging_power)

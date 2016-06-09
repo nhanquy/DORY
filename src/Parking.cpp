@@ -105,7 +105,7 @@ int Parking::search_borne_ID(int user_id) const{
 void Parking::end_of_charge(int user_id) {
 	int ind = search_by_ID(user_id);
 	if (ind == -1) {
-		std::cout << "Error: EV non-existent!\n";
+		LOG(INFO) << "Error: EV non-existent!\n";
 		return;
 	}
 	fleet[ind].end_of_charge(QTime.hours_now());

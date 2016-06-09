@@ -7,8 +7,6 @@
 
 #ifndef TIMEREF_H_
 #define TIMEREF_H_
-#include <stdio.h>
-#include <iostream>
 #include <string>
 #include <sstream>
 #include <sys/time.h>

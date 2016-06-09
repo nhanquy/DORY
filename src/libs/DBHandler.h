@@ -11,8 +11,6 @@
 #ifndef DBHANDLER_H_
 #define DBHANDLER_H_
 #include "sqlite3.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include <vector>
 #include <string>
 #include <sstream>

@@ -14,7 +14,7 @@ DB_Handler::~DB_Handler(){
 }
 void DB_Handler::set_db_dir(const char* set_dir) {
 	db_dir = std::string(set_dir);
-	LOG(DEBUG)<<"db_dir ="<< db_dir.c_str();
+	LOG(DEBUG)<<"Historical database file is set to "<< db_dir.c_str();
 }
 
 bool DB_Handler::open_db() {
