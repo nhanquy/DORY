@@ -100,7 +100,7 @@ void Event_Handler::setup_estimation_JSON(const char* JSON_file)
 // Database tools
 int  Event_Handler::find_user_index(int user_id) const
 {
-	for (int index=0;index<m_estimation.size();index++)
+	for (unsigned int index=0;index<m_estimation.size();index++)
 	{
 		if (m_estimation[index]["user_id"].asInt() == user_id)
 			return index;
@@ -133,7 +133,7 @@ void Event_Handler::AUT(int user_id,
 						int borne_id,
 						double charging_power)
 {
-	bool existed;
+	//bool existed;
 	LOG(DEBUG)<<"AUT event being read...";
 	int est_index = find_user_index(user_id);
 	double est_demand = load_demand_estimation(est_index);

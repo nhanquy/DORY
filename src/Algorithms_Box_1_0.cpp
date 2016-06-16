@@ -22,12 +22,17 @@
 #include "libs/easylogging++.h"
 #define ERROR_LIMIT 100
 INITIALIZE_EASYLOGGINGPP
+#define ELPP_DISABLE_WARNING_LOGS
+#define ELPP_DISABLE_FATAL_LOGS
+#define ELPP_DISABLE_VERBOSE_LOGS
+#define ELPP_DISABLE_TRACE_LOGS
 
 using namespace std;\
-void read_params(const char* config_file,
-				 std::string& est_json_dir,
-            	 std::string& log_dir,
-            	 int& port_no)
+
+void read_params(	const char* config_file,
+					std::string& est_json_dir,
+					std::string& log_dir,
+					int& port_no)
 {
 	std::ifstream jsonDoc(config_file, std::ifstream::binary);
 	if (!jsonDoc.is_open())
@@ -56,44 +61,44 @@ void read_params(const char* config_file,
 	/*
 	 * Setting logging
 	 */
-	try
-	{ // In case file-name corrupted
-		string log_file = log_dir+"/ba_log";
-		string deb_file = log_dir+"/ba_deb";
-		el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,log_file);
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile,"true");
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize,"262144"); // 250 kb
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::LogFlushThreshold,"100"); // 100 lines
-		if (debug_active)
-		{
-			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::Filename,deb_file);
-			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::LogFlushThreshold,"100");
-			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::MaxLogFileSize,"262144");
-		}
-		else
-		{
-			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::Enabled,"false");
-			//el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::ToFile,"false");
-		}
-		LOG(INFO)<<"Log file is configured sucessfully!";
-		LOG(DEBUG)<<"STARTING TO DEBUG...";
-		LOG(INFO)<<"LOGSDIRS read: "<<log_dir;
-		LOG(INFO)<<"Est_Json read: "<<est_json_dir;
-		LOG(INFO)<<"PORT read: "<<port_no;
-		LOG(INFO)<<"Debug active: "<<debug_active;
-	} catch (...)
+	string log_file = log_dir + "/ba_log";
+	string deb_file = log_dir + "/ba_deb";
+	el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,
+			log_file);
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput,
+			"false");
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "true");
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize,
+			"262144"); // 250 kb
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::LogFlushThreshold,
+			"100"); // 100 lines
+	if (debug_active)
 	{
-		// Since logger isn't configured yet, it cannot be called to show the error.
-		// Exit error
-		exit(1);
+		el::Loggers::reconfigureAllLoggers(el::Level::Debug,
+				el::ConfigurationType::Filename, deb_file);
+		el::Loggers::reconfigureAllLoggers(el::Level::Debug,
+				el::ConfigurationType::LogFlushThreshold, "100");
+		el::Loggers::reconfigureAllLoggers(el::Level::Debug,
+				el::ConfigurationType::MaxLogFileSize, "262144");
 	}
+	else
+	{
+		el::Loggers::reconfigureAllLoggers(el::Level::Debug,
+				el::ConfigurationType::Enabled, "false");
+		//el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::ToFile,"false");
+	}
+	LOG(INFO)<<"Log file is configured sucessfully!";
+	LOG(DEBUG)<<"STARTING TO DEBUG...";
+	LOG(INFO)<<"LOGSDIRS read: "<<log_dir;
+	LOG(INFO)<<"Est_Json read: "<<est_json_dir;
+	LOG(INFO)<<"PORT read: "<<port_no;
+	LOG(INFO)<<"Debug active: "<<debug_active;
 }
-int main(	int argc,
-			char *argv[])
+int main(int argc, char *argv[])
 {
-	static const std::string BA_version_check = "BA 1.0.4, last build on 16-06-2016 at 17h00";
+	static const std::string BA_version_check =
+			"BA 1.0.4, last build on 16-06-2016 at 17h00";
 	/*
 	 * usage = config_dir
 	 */
@@ -104,7 +109,7 @@ int main(	int argc,
 	}
 	bool version_check;
 	const char* config_dir = argv[1];
-	string est_json_dir,log_dir;
+	string est_json_dir, log_dir;
 	int port_no;
 	read_params(config_dir, est_json_dir, log_dir, port_no);
 	// -------------------
@@ -135,9 +140,9 @@ int main(	int argc,
 				bool communicating = true;
 				while (communicating)
 				{
-					version_check=false;
+					version_check = false;
 					len = stream->receive(line, sizeof(line));
-					line[len] = 0;	// Remove extra len gabarge from previous message.
+					line[len] = 0;// Remove extra len gabarge from previous message.
 					std::string str_line(line);
 					//std::cout<<"Client sent: "<<str_line<<endl;
 					bool parsingSuccessful = reader.parse(line, root);
@@ -156,34 +161,31 @@ int main(	int argc,
 							LOG(INFO)<<"Closing socket... Shutdown server...";
 							exit(0);
 						} // End shutdown case
-						// -------------------
-						// Closing_socket case
-						// -------------------
+						  // -------------------
+						  // Closing_socket case
+						  // -------------------
 						else if (str_line.find("close_socket")
 								!= std::string::npos)
 						{
 							std::string s_message = "Socket closing...";
-							stream->send(s_message.c_str(),
-									s_message.size());
+							stream->send(s_message.c_str(), s_message.size());
 							LOG(INFO)<<"Socket closed";
 							communicating = false;
 						} // End closing socket case
-						// ----------------------
-						// Checking version case
-						// ----------------------
-						else if (str_line.find("version")
-								!= std::string::npos)
+						  // ----------------------
+						  // Checking version case
+						  // ----------------------
+						else if (str_line.find("version") != std::string::npos)
 						{
 							std::string s_message = BA_version_check;
-							stream->send(s_message.c_str(),
-									s_message.size());
+							stream->send(s_message.c_str(), s_message.size());
 							LOG(INFO)<<"Version checked";
-							version_check=true;
-						}// End checking version case
-						// ------------------------
-						// Read configuration case
-						// ------------------------
-						else if (str_line.find("config")!= std::string::npos)
+							version_check = true;
+						}						// End checking version case
+												// ------------------------
+												// Read configuration case
+												// ------------------------
+						else if (str_line.find("config") != std::string::npos)
 						{
 							event.CONFIG_LOAD(str_line);
 						} // End read configuration case

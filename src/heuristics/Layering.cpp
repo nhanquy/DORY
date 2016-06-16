@@ -82,7 +82,7 @@ void Layering::minmax_planning(int jobID, QNum workload, QNum res_lb,
 	QInt dur_min = (QInt) ceil(workload / res_ub);
 	QNum res;
 	QNum minmaxPeak = max_resource + 1; // +1 to check infeasibility
-	QNum minmaxSum;
+	QNum minmaxSum = max_resource*timeHorizon;
 	QNum peak;
 	QNum sum;
 	numVec res_row(timeHorizon);
