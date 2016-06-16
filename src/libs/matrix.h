@@ -5,7 +5,7 @@
 //
 #ifndef LIB_MATRIX_H_
 #define LIB_MATRIX_H_
-#include <iostream>
+//#include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -16,7 +16,6 @@
 #ifdef DEBUG
 #  include <iostream>
 #  define DEBUG_LOG std::cout
-
 #else
 #  define DEBUG_LOG if(false) std::cout
 #endif

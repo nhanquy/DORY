@@ -54,6 +54,8 @@ void read_params(const char* config_file,
 	//LOG(DEBUG)<<"PORT read: "<<port_no;
 	if (log_dir.size() == 0)
 		log_dir = "logs";
+	// DEBUG flag
+	bool debug_active = ba_params["DEBUG"].asBool();
 	/*
 	 * Setting logging
 	 */
@@ -62,11 +64,21 @@ void read_params(const char* config_file,
 		string log_file = log_dir+"/ba_log";
 		string deb_file = log_dir+"/ba_deb";
 		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Filename,log_file);
-		el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::Filename,deb_file);
 		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
 		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile,"true");
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize,"2097152");
-		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::LogFlushThreshold,"100");
+		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize,"262144"); // 250 kb
+		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::LogFlushThreshold,"100"); // 100 lines
+		if (debug_active)
+		{
+			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::Filename,deb_file);
+			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::LogFlushThreshold,"100");
+			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::MaxLogFileSize,"262144");
+		}
+		else
+		{
+			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::Enabled,"false");
+			el::Loggers::reconfigureAllLoggers(el::Level::Debug,el::ConfigurationType::ToFile,"false");
+		}
 		LOG(INFO)<<"Log file is configured sucessfully!";
 		LOG(DEBUG)<<"STARTING TO DEBUG...";
 
@@ -80,7 +92,7 @@ void read_params(const char* config_file,
 int main(	int argc,
 			char *argv[])
 {
-	static const std::string BA_version_check = "BA 1.0.4, last build on 09-06-2016 at 09:24:00";
+	static const std::string BA_version_check = "BA 1.0.4, last build on 15-06-2016 at 12h05";
 	/*
 	 * usage = config_dir
 	 */

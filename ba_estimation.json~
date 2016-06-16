@@ -1,0 +1,17 @@
+[
+    {
+        "user_id": 0,
+        "demand": 10,
+        "departure": "07:00:00"
+    },
+    {
+        "user_id": 3,
+        "demand": 12,
+        "departure": "07:00:00"
+    },
+    {
+        "user_id": 367,
+        "demand": 11,
+        "departure": "07:30:00"
+    }
+]

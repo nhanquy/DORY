@@ -216,6 +216,9 @@ void Parking::export_ACPF_input(Input &ACPF_input) {
 			departure[i] = QTime.double_to_block(fleet[i].get_exp_departure());
 			workload[i] = fleet[i].get_est_demand()/ACPF_Time.get_block_duration();
 		}
+		// Condition for departure
+		if (departure[i]>H)
+			departure[i]=H;
 		// Fixing arrival to start of horizon
 		// No-wait model applied, only schedule EV already parked
 		// Arrival constraints relaxed
