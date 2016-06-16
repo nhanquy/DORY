@@ -1,0 +1,2 @@
+alias test_server="chmod +x GO_SIMULATION  && ./GO_SIMULATION 10004 localhost"
+alias test_ba = "chmod +x Algorithms_Box_1_0  && ./Algorithms_Box_1_0 config.json Noon_Config"
